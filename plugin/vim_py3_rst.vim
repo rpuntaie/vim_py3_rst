@@ -5,6 +5,7 @@ py3 << EOF
 import vim
 from pathlib import Path
 from itertools import tee
+import types
 
 #py3 related: 
 #  eval current range or line in python, print to stdout or __pyout__ and remember in "*"
@@ -21,7 +22,7 @@ def file_to_name(fl):
     except:
         return fl.split(os.sep)[-1][:-3]
 def py3_get_pyout(): 
-    pyout = [b for b in vim.buffers if b.name and b.name=='__pyout__']
+    pyout = [b for b in vim.buffers if b.name and b.name.find('__pyout__')!=-1]
     if pyout: 
         wnd=[(w,i) for i,w in enumerate(vim.windows) if w.buffer.name == pyout[0].name]
         if wnd:
@@ -45,7 +46,7 @@ def py3_print_result_in_vim(expr, result):
         vim.command("normal gg")
         vim.command("wincmd p")
     else:
-        res_str
+        print(res_str)
 def vim_current_range(): 
     c_r=vim.current.range
     if not c_r:
@@ -158,13 +159,13 @@ def ReTable():
 
 #preview rst in browser
 import webbrowser as wb
-browser = None
-for brwsrname in ['firefox','chrome','chromium','safari']:
+for brwsrname in [None,'firefox','chrome','chromium','safari']:
     try:
         browser = wb.get(brwsrname)
     except: 
         continue
-    break
+    if browser:
+        break
 #if not browser:
 #    if 'win' in sys.platform:
 #        wb.register('chrome',None,wb.BackgroundBrowser('C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'))
@@ -175,11 +176,13 @@ from time import sleep
 from docutils.core import publish_string
 from tempfile import mkdtemp,mkstemp
 import os
+__confdir = os.path.expanduser('~')
+__tmpdir = os.path.join(__confdir,'tmp')
 def showrst2html(rst=None):
     if not rst:
         rst = '.. default-role:: math\n\n'+vim_current_range() 
     html = publish_string(rst,writer_name='html')
-    fd, temp_path = mkstemp(suffix='.html',dir=os.getcwd())
+    fd, temp_path = mkstemp(suffix='.html',dir=__tmpdir)
     os.write(fd,html)
     os.close(fd)
     browser.open(temp_path)
@@ -192,9 +195,7 @@ def showsphinx(rst=None):
     sphinx-build -b latex -d _build/doctrees -c <path to conf.py> -D master_doc=<file w/o rst> . _build/latex <file.rst>
     """
     from sphinx.application import Sphinx
-    confdir = userpth = os.path.expanduser('~')
-    srcdir = os.path.join(userpth,'tmp')
-    srcdir = mkdtemp(prefix='tmp_',dir=srcdir)
+    srcdir = mkdtemp(prefix='tmp_',dir=__tmpdir)
     try:
       os.makedirs(srcdir)
     except FileExistsError:
@@ -214,6 +215,9 @@ def showsphinx(rst=None):
     fn = os.path.split(tmprst)[1]
     fnnoext = os.path.splitext(fn)[0]
     confoverrides = {'master_doc':fnnoext}
+    confdir = __confdir
+    if os.path.exists('conf.py'):
+        confdir = os.getcwd()
     app = Sphinx(srcdir, confdir, outdir, doctreedir,'html',
                  confoverrides, None, None, None,
                  None, [], 0, 1)
@@ -264,12 +268,17 @@ if has("autocmd")
     autocmd BufEnter *.py :map <leader>jt :py3 print(timeit(vim_current_range(),'\n'.join([l for l in vim.current.buffer]),number=1000))<CR>
 endif
 
-vnoremap <leader>lh :py3 showrst2html()<CR>
-noremap <leader>lh :py3 showrst2html()<CR>
-vnoremap <leader>lx :py3 showsphinx()<CR>
-noremap <leader>lx :py3 showsphinx()<CR>
+vnoremap <silent> <leader>lh :py3 showrst2html()<CR>
+noremap <silent> <leader>lh :py3 showrst2html()<CR>
+vnoremap <silent> <leader>lx :py3 showsphinx()<CR>
+noremap <silent> <leader>lx :py3 showsphinx()<CR>
 
-map <leader>jj :py3 py3_print_current_range()<CR>
-map <leader>jk :py3 py3_eval_current_range()<CR>
-map <leader>jd :py3 py3_doctest_current_range()<CR>
+map <silent> <leader>jj :py3 py3_print_current_range()<CR>
+map <silent> <leader>jk :py3 py3_eval_current_range()<CR>
+map <silent> <leader>jd :py3 py3_doctest_current_range()<CR>
 
+nnoremap <silent> <leader>etf :py3 ReformatTable()<CR>
+nnoremap <silent> <leader>etr :py3 ReflowTable()<CR>
+nnoremap <silent> <leader>ett :py3 ReTable()<CR>
+command! -narg=1 U py3 UnderLine(<f-args>) 
+command! -narg=1 T py3 TitleLine(<f-args>) 

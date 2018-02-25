@@ -1,6 +1,5 @@
 .. encoding: utf-8 
 
-
 ``vim_py3_rst`` provides shortcuts and utility functions 
 
 - for Vim's ``:py3``
