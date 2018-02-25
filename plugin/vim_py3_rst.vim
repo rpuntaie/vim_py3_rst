@@ -6,6 +6,7 @@ import vim
 from pathlib import Path
 from itertools import tee
 import types
+from timeit import timeit
 
 #py3 related: 
 #  eval current range or line in python, print to stdout or __pyout__ and remember in "*"
@@ -47,6 +48,10 @@ def py3_print_result_in_vim(expr, result):
         vim.command("wincmd p")
     else:
         print(res_str)
+def py3_timeit():
+    rngstr = vim_current_range()
+    tim = timeit(rngstr,'\n'.join(vim.current.buffer),number=1000)
+    py3_print_result_in_vim('timeit('+rngstr+')',tim)
 def vim_current_range(): 
     c_r=vim.current.range
     if not c_r:
@@ -265,7 +270,7 @@ map <silent> <leader>jw :PyOut<CR>
 if has("autocmd")
     autocmd BufEnter *.py :py3 __file__ = vim.current.buffer.name
     autocmd BufEnter *.py :py3 __name__ = file_to_name(vim.current.buffer.name)
-    autocmd BufEnter *.py :map <leader>jt :py3 print(timeit(vim_current_range(),'\n'.join([l for l in vim.current.buffer]),number=1000))<CR>
+    autocmd BufEnter *.py :map <leader>jt :py3 py3_timeit()<CR>
 endif
 
 vnoremap <silent> <leader>lh :py3 showrst2html()<CR>
@@ -282,3 +287,4 @@ nnoremap <silent> <leader>etr :py3 ReflowTable()<CR>
 nnoremap <silent> <leader>ett :py3 ReTable()<CR>
 command! -narg=1 U py3 UnderLine(<f-args>) 
 command! -narg=1 T py3 TitleLine(<f-args>) 
+
