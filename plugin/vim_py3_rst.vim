@@ -114,10 +114,6 @@ try:
 except ModuleNotFoundError:
     print('Do "pip install rstdoc" to make this work')
     raise
-def get_table_bounds():
-    row,col = vim.current.window.cursor
-    row,col,m = get_bounds(vim.current.buffer,row-1,col-1)
-    return row+1,col+1,m
 def ReformatTable():
     row,col = vim.current.window.cursor
     reformat_table(vim.current.buffer,row-1,col-1,1)
