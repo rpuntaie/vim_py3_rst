@@ -117,7 +117,7 @@ Set of .rest documentation
 These apply to the current directory, not a buffer.
 
 - `RstDcxInit`_: Create a sample documentation folder. Same as ``rstdcx --init``.
-- `RstDcx()`_: Update `.tags` and link files for '.rest' files in all subdirectories.
+- `RstDcx`_: Update `.tags` and link files for '.rest' files in all subdirectories.
   It also generates documentation from other files (see `dcx`_).
   Same as ``rstdcx``.
 

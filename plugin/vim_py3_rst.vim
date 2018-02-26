@@ -206,9 +206,11 @@ import os
 __confdir = os.path.expanduser('~')
 __tmpdir = os.path.join(__confdir,'tmp')
 def ShowHtml(rst=None):
+    rngstr,_ = vim_current_range()
+    if '\n' not in rngstr:
+        rngstr = '\n'.join(vim.current.buffer)
     if not rst:
-        rst = '.. default-role:: math\n\n' + vim_current_range()[0]
-    print(rst)
+        rst = '.. default-role:: math\n\n' + rngstr
     html = publish_string(rst,writer_name='html')
     fd, temp_path = mkstemp(suffix='.html',dir=__tmpdir)
     os.write(fd,html)
