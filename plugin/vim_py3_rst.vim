@@ -35,7 +35,8 @@ def py3_print_result_in_vim(expr, result):
     else:
         res_str = str(result)
     try:
-        vimc = u'setreg("*","{0}")'.format(res_str.replace('\\','\\\\').replace('"','\\"'))
+        vimc = u'setreg("*","{0}")'.format(
+          res_str.replace('\\','\\\\').replace('"','\\"'))
         vim.eval(vimc)
     except: pass
     pyout=py3_get_pyout()
@@ -48,10 +49,6 @@ def py3_print_result_in_vim(expr, result):
         vim.command("wincmd p")
     else:
         print(res_str)
-def py3_timeit():
-    rngstr = vim_current_range()
-    tim = timeit(rngstr,'\n'.join(vim.current.buffer),number=1000)
-    py3_print_result_in_vim('timeit('+rngstr+')',tim)
 def vim_current_range(): 
     c_r=vim.current.range
     if not c_r:
@@ -61,24 +58,32 @@ def vim_current_range():
     if len(c_r)==1:
         b = vim.current.buffer.mark('<')   
         e = vim.current.buffer.mark('>')
-    if b and e and getattr(c_r,'start',-2)+1 == b[0] and b[1] <= e[1] and e[1] < len(c_r[0]):
-        rngstr=c_r[0][b[1]:e[1]]#(e[1]+1)]
-        rngstr=rngstr.strip()
+    if b and e and getattr(
+          c_r,'start',-2)+1 == b[0] and b[1] <= e[1] and e[1] < len(c_r[0]):
+        if vim.eval('&selection')=='exclusive':
+            from_to = b[1],e[1]
+        else:
+            from_to = b[1],e[1]+1
+        rngstr = c_r[0][from_to[0]:from_to[1]]
+        rngstr = rngstr
     else:
+        from_to = None
         t = c_r[0]
-        i=t.find(t.strip(' >#.%,\t'))
-        rngstr='\n'.join([ln[i:] for ln in c_r])
-    return rngstr
+        i = t.find(t.strip(' >#.%,\t'))
+        rngstr = '\n'.join([ln[i:] for ln in c_r])
+    return rngstr, from_to
 def py3_eval_current_range(): 
-    rngstr = vim_current_range()
+    rngstr,_ = vim_current_range()
     eval(compile(rngstr,'<string>','exec'),globals())
 def py3_ready_for_eval(line):
-    conditional=re.compile(r'(\s*def\s+|\s*if\s+|\s*elif\s+|\s*while\s+|\s*for\s+[\w,\s]+in\s+)(.*)(:.*)')
+    conditional=re.compile(
+        r'(\s*def\s+|\s*if\s+|\s*elif\s+|\s*while\s+|\s*for\s+[\w,\s]+in\s+)(.*)(:.*)')
     cm = conditional.match(line)
     if cm:
         toeval =  cm.group(2)
     else:
-        toeval =  line.replace('return ','').replace('yield ','').replace('continue','pass').replace('break','pass')
+        toeval =  line.replace('return ','').replace('yield ',''
+          ).replace('continue','pass').replace('break','pass')
     return 'py_res ='+toeval
 def make_py_res(rngstr):
     rl = rngstr.splitlines()
@@ -88,20 +93,41 @@ def make_py_res(rngstr):
         rl[0] = py3_ready_for_eval(rl[0])
     return '\n'.join(rl)
 def py3_print_current_range(): 
-  rngstr = vim_current_range()
-  try: 
-    eval(compile(make_py_res(rngstr),'<string>','exec'),globals()) 
-    result = eval("py_res",globals())
-  except: 
-    eval(compile(rngstr,'<string>','exec'),globals()) 
-    result = None
-  py3_print_result_in_vim(rngstr,result)
+    rngstr,_ = vim_current_range()
+    try: 
+        eval(compile(make_py_res(rngstr),'<string>','exec'),globals()) 
+        result = eval("py_res",globals())
+    except: 
+        eval(compile(rngstr,'<string>','exec'),globals()) 
+        result = None
+    py3_print_result_in_vim(rngstr,result)
 def py3_doctest_current_range(): 
-  rngstr = vim_current_range()
-  test = DocTestParser().get_doctest(rngstr,globals(), 'vimv', None, 0)
-  runner = DocTestRunner()
-  runner.run(test,out=sys.stdout.write)
-  py3_print_result_in_vim(rngstr,runner.summarize())
+    rngstr,_ = vim_current_range()
+    test = DocTestParser().get_doctest(rngstr,globals(), 'vimv', None, 0)
+    runner = DocTestRunner()
+    runner.run(test,out=sys.stdout.write)
+    py3_print_result_in_vim(rngstr,runner.summarize())
+def py3_timeit():
+    rngstr,_ = vim_current_range()
+    tim = timeit(rngstr,'\n'.join(vim.current.buffer),number=1000)
+    py3_print_result_in_vim('timeit('+rngstr+')',tim)
+
+#template using bottle SimpleTemplate (stpl)
+
+import bottle
+
+def py3_expand_stpl():
+    rngstr,from_to = vim_current_range()
+    st=bottle.template(rngstr
+            ,template_lookup = [os.getcwd()]
+            ,**globals()
+            ) 
+    if from_to:
+        res = vim.current.range[0
+          ][:from_to[0]]+st+vim.current.range[0][from_to[1]:]
+        vim.current.range[:] = res.splitlines()
+    else:
+        vim.current.range[:] = st.splitlines()
 
 #rst related
 try:
@@ -179,9 +205,10 @@ from tempfile import mkdtemp,mkstemp
 import os
 __confdir = os.path.expanduser('~')
 __tmpdir = os.path.join(__confdir,'tmp')
-def showrst2html(rst=None):
+def ShowHtml(rst=None):
     if not rst:
-        rst = '.. default-role:: math\n\n'+vim_current_range() 
+        rst = '.. default-role:: math\n\n' + vim_current_range()[0]
+    print(rst)
     html = publish_string(rst,writer_name='html')
     fd, temp_path = mkstemp(suffix='.html',dir=__tmpdir)
     os.write(fd,html)
@@ -190,7 +217,7 @@ def showrst2html(rst=None):
     #sleep(0.5)
     #os.remove(temp_path)
     return html
-def showsphinx(rst=None):
+def ShowSphinx(rst=None):
     """
     sphinx-build -b singlehtml -d _build/doctrees -c <path to conf.py> -D master_doc=<file w/o rst> . _build/html <file.rst>
     sphinx-build -b latex -d _build/doctrees -c <path to conf.py> -D master_doc=<file w/o rst> . _build/latex <file.rst>
@@ -198,12 +225,12 @@ def showsphinx(rst=None):
     from sphinx.application import Sphinx
     srcdir = mkdtemp(prefix='tmp_',dir=__tmpdir)
     try:
-      os.makedirs(srcdir)
+        os.makedirs(srcdir)
     except FileExistsError:
-      pass
+        pass
     fdrst, tmprst = mkstemp(suffix='.rst',prefix='tmp_',dir=srcdir)
     if rst is None:
-        rst = vim_current_range() 
+        rst,_ = vim_current_range()
         if '\n' not in rst:
             rst = None
     if rst is None:
@@ -269,18 +296,37 @@ if has("autocmd")
     autocmd BufEnter *.py :map <leader>jt :py3 py3_timeit()<CR>
 endif
 
-vnoremap <silent> <leader>lh :py3 showrst2html()<CR>
-noremap <silent> <leader>lh :py3 showrst2html()<CR>
-vnoremap <silent> <leader>lx :py3 showsphinx()<CR>
-noremap <silent> <leader>lx :py3 showsphinx()<CR>
+vnoremap <silent> <leader>lh :py3 ShowHtml()<CR>
+noremap <silent> <leader>lh :py3 ShowHtml()<CR>
+vnoremap <silent> <leader>lx :py3 ShowSphinx()<CR>
+noremap <silent> <leader>lx :py3 ShowSphinx()<CR>
 
 map <silent> <leader>jj :py3 py3_print_current_range()<CR>
 map <silent> <leader>jk :py3 py3_eval_current_range()<CR>
+map <silent> <leader>je :py3 py3_expand_stpl()<CR>
 map <silent> <leader>jd :py3 py3_doctest_current_range()<CR>
 
 nnoremap <silent> <leader>etf :py3 ReformatTable()<CR>
 nnoremap <silent> <leader>etr :py3 ReflowTable()<CR>
-nnoremap <silent> <leader>ett :py3 ReTable()<CR>
+nnoremap <silent> <leader>ett :py3 ReTitle()<CR>
+
 command! -narg=1 U py3 UnderLine(<f-args>) 
 command! -narg=1 T py3 TitleLine(<f-args>) 
+
+" the order is partly taken from https://github.com/jimklo/atom-rst-snippets
+nnoremap <silent> <leader>et1 :T=<CR>
+nnoremap <silent> <leader>et2 :T-<CR>
+nnoremap <silent> <leader>et3 :U=<CR>
+nnoremap <silent> <leader>et4 :U-<CR>
+nnoremap <silent> <leader>et5 :U`<CR>
+nnoremap <silent> <leader>et6 :U'<CR>
+nnoremap <silent> <leader>et7 :U.<CR>
+nnoremap <silent> <leader>et8 :U~<CR>
+nnoremap <silent> <leader>et9 :U*<CR>
+nnoremap <silent> <leader>eta :U+<CR>
+nnoremap <silent> <leader>etb :U^<CR>
+nnoremap <silent> <leader>etc :U:<CR>
+nnoremap <silent> <leader>etd :U;<CR>
+nnoremap <silent> <leader>ete :U,<CR>
+nnoremap <silent> <leader>etf :U_<CR>
 
