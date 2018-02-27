@@ -62,7 +62,7 @@ Title
 `````
 
 Title underline within one ``.rest`` must be consistent, otherwise it does not matter.
-``<leader>etx`` with ``x∈{1,..,f}`` helps keep the consistency.
+``<leader>ehx`` with ``x∈{1,..,f}`` helps keep the consistency.
 The order is partly taken from `atom-rst-snippets`_.
 All possibilities are in `ReTable`_.
 
