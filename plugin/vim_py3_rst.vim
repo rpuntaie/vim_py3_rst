@@ -316,19 +316,19 @@ command! -narg=1 U py3 UnderLine(<f-args>)
 command! -narg=1 T py3 TitleLine(<f-args>) 
 
 " the order is partly taken from https://github.com/jimklo/atom-rst-snippets
-nnoremap <silent> <leader>eh1 :T=<CR>
-nnoremap <silent> <leader>eh2 :T-<CR>
-nnoremap <silent> <leader>eh3 :U=<CR>
-nnoremap <silent> <leader>eh4 :U-<CR>
-nnoremap <silent> <leader>eh5 :U`<CR>
-nnoremap <silent> <leader>eh6 :U'<CR>
-nnoremap <silent> <leader>eh7 :U.<CR>
-nnoremap <silent> <leader>eh8 :U~<CR>
-nnoremap <silent> <leader>eh9 :U*<CR>
-nnoremap <silent> <leader>eha :U+<CR>
-nnoremap <silent> <leader>ehb :U^<CR>
-nnoremap <silent> <leader>ehc :U:<CR>
-nnoremap <silent> <leader>ehd :U;<CR>
-nnoremap <silent> <leader>ehe :U,<CR>
-nnoremap <silent> <leader>ehf :U_<CR>
+nnoremap <silent> <leader>h1 :T=<CR>
+nnoremap <silent> <leader>h2 :T-<CR>
+nnoremap <silent> <leader>h3 :U=<CR>
+nnoremap <silent> <leader>h4 :U-<CR>
+nnoremap <silent> <leader>h5 :U`<CR>
+nnoremap <silent> <leader>h6 :U'<CR>
+nnoremap <silent> <leader>h7 :U.<CR>
+nnoremap <silent> <leader>h8 :U~<CR>
+nnoremap <silent> <leader>h9 :U*<CR>
+nnoremap <silent> <leader>ha :U+<CR>
+nnoremap <silent> <leader>hb :U^<CR>
+nnoremap <silent> <leader>hc :U:<CR>
+nnoremap <silent> <leader>hd :U;<CR>
+nnoremap <silent> <leader>he :U,<CR>
+nnoremap <silent> <leader>hf :U_<CR>
 
