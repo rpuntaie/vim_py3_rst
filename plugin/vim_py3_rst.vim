@@ -146,9 +146,9 @@ def ReformatTable():
 def ReflowTable():
     row,col = vim.current.window.cursor
     reflow_table(vim.current.buffer,row-1,col-1)
-def ReTitle():
+def ReTitle(down=0):
     row,col = vim.current.window.cursor
-    re_title(vim.current.buffer,row-1,col-1)
+    re_title(vim.current.buffer,row-1,col-1,down)
 def UnderLine(chr):
     #chr='='
     pos=vim.current.window.cursor[0]-1
@@ -311,6 +311,8 @@ map <silent> <leader>jd :py3 py3_doctest_current_range()<CR>
 nnoremap <silent> <leader>etf :py3 ReformatTable()<CR>
 nnoremap <silent> <leader>etr :py3 ReflowTable()<CR>
 nnoremap <silent> <leader>ett :py3 ReTitle()<CR>
+nnoremap <silent> <leader>etu :py3 ReTitle(-1)<CR>
+nnoremap <silent> <leader>etd :py3 ReTitle(1)<CR>
 
 command! -narg=1 U py3 UnderLine(<f-args>) 
 command! -narg=1 T py3 TitleLine(<f-args>) 
