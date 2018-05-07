@@ -131,7 +131,7 @@ Preview can be done either on the visual selection or on the whole document.
 
 .. note:: This is still work in progress.
 
-.. _`rstdoc`: https:\\github.com\rpuntaie\rstdoc
+.. _`rstdoc`: https://github.com/rpuntaie/rstdoc
 .. _`vim_py3_rst`: https://github.com/rpuntaie/vim_py3_rst/blob/master/plugin/vim_py3_rst.vim
 .. _`ListTable`: https://github.com/rpuntaie/rstdoc/blob/master/rstdoc/listtable.py
 .. _`ReFlow`: https://github.com/rpuntaie/rstdoc/blob/master/rstdoc/reflow.py
