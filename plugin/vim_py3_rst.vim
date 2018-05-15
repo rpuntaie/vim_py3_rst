@@ -317,20 +317,21 @@ nnoremap <silent> <leader>etd :py3 ReTitle(1)<CR>
 command! -narg=1 U py3 UnderLine(<f-args>) 
 command! -narg=1 T py3 TitleLine(<f-args>) 
 
-" the order is partly taken from https://github.com/jimklo/atom-rst-snippets
-nnoremap <silent> <leader>h1 :T=<CR>
-nnoremap <silent> <leader>h2 :T-<CR>
+" the order was partly taken from https://github.com/jimklo/atom-rst-snippets
+" then converted to http://documentation-style-guide-sphinx.readthedocs.io/en/latest/style-guide.html
+nnoremap <silent> <leader>h1 :T#<CR>
+nnoremap <silent> <leader>h2 :T*<CR>
 nnoremap <silent> <leader>h3 :U=<CR>
 nnoremap <silent> <leader>h4 :U-<CR>
-nnoremap <silent> <leader>h5 :U`<CR>
-nnoremap <silent> <leader>h6 :U'<CR>
-nnoremap <silent> <leader>h7 :U.<CR>
-nnoremap <silent> <leader>h8 :U~<CR>
-nnoremap <silent> <leader>h9 :U*<CR>
-nnoremap <silent> <leader>ha :U+<CR>
-nnoremap <silent> <leader>hb :U^<CR>
-nnoremap <silent> <leader>hc :U:<CR>
-nnoremap <silent> <leader>hd :U;<CR>
-nnoremap <silent> <leader>he :U,<CR>
-nnoremap <silent> <leader>hf :U_<CR>
+nnoremap <silent> <leader>h5 :U^<CR>
+nnoremap <silent> <leader>h6 :U"<CR>
+nnoremap <silent> <leader>h7 :U'<CR>
+nnoremap <silent> <leader>h8 :U`<CR>
+nnoremap <silent> <leader>h9 :U.<CR>
+nnoremap <silent> <leader>ha :U_<CR>
+nnoremap <silent> <leader>hb :U~<CR>
+nnoremap <silent> <leader>hc :U+<CR>
+nnoremap <silent> <leader>hd :U:<CR>
+nnoremap <silent> <leader>he :U;<CR>
+nnoremap <silent> <leader>hf :U,<CR>
 
