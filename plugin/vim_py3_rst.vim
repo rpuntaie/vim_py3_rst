@@ -114,11 +114,11 @@ def py3_timeit():
 
 #template using bottle SimpleTemplate (stpl)
 
-import bottle
+import stpl
 
 def py3_expand_stpl():
     rngstr,from_to = vim_current_range()
-    st=bottle.template(rngstr
+    st=stpl.template(rngstr
             ,template_lookup = [os.getcwd()]
             ,**globals()
             ) 
