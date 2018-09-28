@@ -7,6 +7,7 @@ from pathlib import Path
 from itertools import tee
 import types
 from timeit import timeit
+import os
 
 #py3 related: 
 #  eval current range or line in python, print to stdout or __pyout__ and remember in "*"
@@ -116,18 +117,32 @@ def py3_timeit():
 
 import stpl
 
+template_stdout = []
 def py3_expand_stpl():
     rngstr,from_to = vim_current_range()
-    st=stpl.template(rngstr
-            ,template_lookup = [os.getcwd()]
-            ,**globals()
-            ) 
+
+    d = os.path.dirname
+    tpl = stpl.SimpleTemplate(source=rngstr
+        ,lookup=[os.getcwd(),d(vim.current.buffer.name),d(d(vim.current.buffer.name))])
+    env = {}
+    env.update(globals())
+    env['__file__']=vim.current.buffer.name
+    del template_stdout[:]
+    newenv = tpl.execute(template_stdout,env)
+    fl = None
+    try:
+        fl = globals()['__file__']
+    except: pass
+    globals().update(newenv)
+    if fl:
+        globals()['__file__'] = fl
+
+    t = ''.join(template_stdout)
     if from_to:
-        res = vim.current.range[0
-          ][:from_to[0]]+st+vim.current.range[0][from_to[1]:]
+        res = vim.current.range[0][:from_to[0]]+t+vim.current.range[0][from_to[1]:]
         vim.current.range[:] = res.splitlines()
     else:
-        vim.current.range[:] = st.splitlines()
+        vim.current.range[:] = t.splitlines()
 
 #rst related
 try:
