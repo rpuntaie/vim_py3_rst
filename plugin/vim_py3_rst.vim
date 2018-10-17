@@ -76,7 +76,7 @@ def vim_current_range():
     return rngstr, from_to
 def py3_eval(code):
     eval(compile(
-        '__file__ = r"%s"'%vim.current.buffer.name
+        '__file__ = r"%s"'%vim.current.buffer.name.replace('\\','/')
         ,'<string>','exec'),globals()
         )
     eval(compile(code,'<string>','exec'),globals())
