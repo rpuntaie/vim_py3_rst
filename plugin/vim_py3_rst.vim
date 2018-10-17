@@ -3,11 +3,12 @@
 py3 << EOF
 
 import vim
+import types
+import os
+import doctest 
+from timeit import timeit
 from pathlib import Path
 from itertools import tee
-import types
-from timeit import timeit
-import os
 
 #py3 related: 
 #  eval current range or line in python, print to stdout or __pyout__ and remember in "*"
@@ -73,9 +74,15 @@ def vim_current_range():
         i = t.find(t.strip(' >#.%,\t'))
         rngstr = '\n'.join([ln[i:] for ln in c_r])
     return rngstr, from_to
+def py3_eval(code):
+    eval(compile(
+        '__file__ = r"%s"'%vim.current.buffer.name
+        ,'<string>','exec'),globals()
+        )
+    eval(compile(code,'<string>','exec'),globals())
 def py3_eval_current_range(): 
     rngstr,_ = vim_current_range()
-    eval(compile(rngstr,'<string>','exec'),globals())
+    py3_eval(rngstr)
 def py3_ready_for_eval(line):
     conditional=re.compile(
         r'(\s*def\s+|\s*if\s+|\s*elif\s+|\s*while\s+|\s*for\s+[\w,\s]+in\s+)(.*)(:.*)')
@@ -96,16 +103,16 @@ def make_py_res(rngstr):
 def py3_print_current_range(): 
     rngstr,_ = vim_current_range()
     try: 
-        eval(compile(make_py_res(rngstr),'<string>','exec'),globals()) 
+        py3_eval(make_py_res(rngstr))
         result = eval("py_res",globals())
     except: 
-        eval(compile(rngstr,'<string>','exec'),globals()) 
+        py3_eval(rngstr)
         result = None
     py3_print_result_in_vim(rngstr,result)
 def py3_doctest_current_range(): 
     rngstr,_ = vim_current_range()
-    test = DocTestParser().get_doctest(rngstr,globals(), 'vimv', None, 0)
-    runner = DocTestRunner()
+    test = doctest.DocTestParser().get_doctest(rngstr,globals(), 'vimv', None, 0)
+    runner = doctest.DocTestRunner(optionflags=doctest.ELLIPSIS|doctest.IGNORE_EXCEPTION_DETAIL)
     runner.run(test,out=sys.stdout.write)
     py3_print_result_in_vim(rngstr,runner.summarize())
 def py3_timeit():
