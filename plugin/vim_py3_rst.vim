@@ -153,7 +153,7 @@ def py3_expand_stpl():
 
 #rst related
 try:
-    from rstdoc.retable import reformat_table, reflow_table, re_title, get_bounds
+    from rstdoc.retable import reformat_table, reflow_table, re_title, get_bounds, title_some
     from rstdoc.dcx import main as dcx
     from rstdoc.listtable import gridtable
     from rstdoc.reflow import reflow
