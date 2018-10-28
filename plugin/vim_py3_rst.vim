@@ -154,7 +154,7 @@ def py3_expand_stpl():
 #rst related
 try:
     from rstdoc.retable import reformat_table, reflow_table, re_title, get_bounds, title_some
-    from rstdoc.dcx import main as dcx
+    from rstdoc.dcx import index_dir, convert_in_tempdir, startfile
     from rstdoc.listtable import gridtable
     from rstdoc.reflow import reflow
     from rstdoc.untable import untable
@@ -185,10 +185,8 @@ def UnderLine(chr):
 def TitleLine(chr):
     pos,rcline,tline = _header(chr)
     vim.current.buffer[pos:pos+1] = [tline,rcline,tline]
-def RstDcxInit():
-    dcx(root='.',verbose=False)
-def RstDcx():
-    dcx(root=None,verbose=False)
+def RstIndex():
+    index_dir()
     tags=','.join([str(x.absolute()) for x in Path('.').glob("**/.tags")])
     vim.eval('''execute("set tags=./.tags,.tags,'''+tags.replace('\\','/')+'")')
 def ListTable(join):
@@ -208,7 +206,6 @@ def ReTable():
     lt = list(retable(c_r[:]))
     vim.current.buffer[c_r.start:c_r.end+1] = lt
 
-#preview rst in browser
 import webbrowser as wb
 for brwsrname in [None,'firefox','chrome','chromium','safari']:
     try:
@@ -217,66 +214,25 @@ for brwsrname in [None,'firefox','chrome','chromium','safari']:
         continue
     if browser:
         break
-#if not browser:
-#    if 'win' in sys.platform:
-#        wb.register('chrome',None,wb.BackgroundBrowser('C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'))
-#    else:
-#        wb.register('chrome',None,wb.BackgroundBrowser('/usr/bin/chromium'))
-#    browser = wb.get('chrome')
 from time import sleep
 from docutils.core import publish_string
 from tempfile import mkdtemp,mkstemp
 import os
 __confdir = os.path.expanduser('~')
 __tmpdir = os.path.join(__confdir,'tmp')
-def ShowHtml(rst=None):
+def Show(
+    outinfo='rst_html' #docx, ... , rst_html, ...  eps, svg, ...
+    ):
     rngstr,_ = vim_current_range()
     if '\n' not in rngstr:
-        rngstr = '\n'.join(vim.current.buffer)
-    if not rst:
-        rst = '.. default-role:: math\n\n' + rngstr
-    html = publish_string(rst,writer_name='html')
-    fd, temp_path = mkstemp(suffix='.html',dir=__tmpdir)
-    os.write(fd,html)
-    os.close(fd)
-    browser.open(temp_path)
-    #sleep(0.5)
-    #os.remove(temp_path)
-    return html
-def ShowSphinx(rst=None):
-    """
-    sphinx-build -b singlehtml -d _build/doctrees -c <path to conf.py> -D master_doc=<file w/o rst> . _build/html <file.rst>
-    sphinx-build -b latex -d _build/doctrees -c <path to conf.py> -D master_doc=<file w/o rst> . _build/latex <file.rst>
-    """
-    from sphinx.application import Sphinx
-    srcdir = mkdtemp(prefix='tmp_',dir=__tmpdir)
-    try:
-        os.makedirs(srcdir)
-    except FileExistsError:
-        pass
-    fdrst, tmprst = mkstemp(suffix='.rst',prefix='tmp_',dir=srcdir)
-    if rst is None:
-        rst,_ = vim_current_range()
-        if '\n' not in rst:
-            rst = None
-    if rst is None:
-        vim.command('w! '+tmprst)
+        lns = vim.current.buffer
     else:
-        os.write(fdrst,rst.encode())
-    os.close(fdrst)
-    outdir = os.path.join(srcdir,'_build','html')
-    doctreedir = os.path.join(srcdir,'_build','doctrees')
-    fn = os.path.split(tmprst)[1]
-    fnnoext = os.path.splitext(fn)[0]
-    confoverrides = {'master_doc':fnnoext}
-    confdir = __confdir
-    if os.path.exists('conf.py'):
-        confdir = os.getcwd()
-    app = Sphinx(srcdir, confdir, outdir, doctreedir,'html',
-                 confoverrides, None, None, None,
-                 None, [], 0, 1)
-    app.build()
-    browser.open(os.path.join(outdir,fnnoext+'.html'))
+        lns = rngstr.splitlines()
+    outfile = convert_in_tempdir(lns,outinfo=outinfo)
+    if outfile.endswith('.html') and browser:
+        browser.open(outfile)
+    else:
+        startfile(outfile)
 
 #titles
 vim.command("nnoremap <silent> <leader>h1 :T#<CR>")
@@ -328,10 +284,8 @@ if has("autocmd")
     autocmd BufEnter *.py :map <leader>jt :py3 py3_timeit()<CR>
 endif
 
-vnoremap <silent> <leader>lh :py3 ShowHtml()<CR>
-noremap <silent> <leader>lh :py3 ShowHtml()<CR>
-vnoremap <silent> <leader>lx :py3 ShowSphinx()<CR>
-noremap <silent> <leader>lx :py3 ShowSphinx()<CR>
+vnoremap <silent> <leader>lh :py3 Show()<CR>
+noremap <silent> <leader>lh :py3 Show()<CR>
 
 map <silent> <leader>jj :py3 py3_print_current_range()<CR>
 map <silent> <leader>jk :py3 py3_eval_current_range()<CR>
