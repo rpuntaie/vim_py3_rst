@@ -154,13 +154,13 @@ def py3_expand_stpl():
 #rst related
 try:
     from rstdoc.retable import reformat_table, reflow_table, re_title, get_bounds, title_some
-    from rstdoc.dcx import index_dir, convert_in_tempdir, startfile
+    from rstdoc.dcx import index_dir, convert_in_tempdir, startfile, rexkw, grep, yield_with_kw, rindices
     from rstdoc.listtable import gridtable
     from rstdoc.reflow import reflow
     from rstdoc.untable import untable
     from rstdoc.retable import retable
 except ModuleNotFoundError:
-    print('Do "pip install rstdoc" to make this work')
+    print('Do "pip install rstdoc" (version 1.7.0) to make this work')
     raise
 def ReformatTable():
     row,col = vim.current.window.cursor
@@ -205,6 +205,35 @@ def ReTable():
     c_r=vim.current.range
     lt = list(retable(c_r[:]))
     vim.current.buffer[c_r.start:c_r.end+1] = lt
+#find in tag lines of format .. {tag1, tag2,...}
+def vim_query_kws (query,fn_ln_kw=None,ask=True):
+    #query = 'a'
+    #fn_ln_kw = [('a/b',1,'a b'),('c/d',1,'c d')]
+    i_kws = list(yield_with_kw(query,fn_ln_kw))
+    qf = [{'filename':e[0].replace('\\\\','\\'),'lnum':e[1]} for i,e in i_kws]
+    vim.eval('setqflist({0})'.format(str(qf)))
+    if ask:
+        qflen=len(qf)
+        if qflen == 0:
+            return 0
+        ch = 1
+        if qflen > 1:
+            for i,(_,e) in enumerate(i_kws):
+                print("{0}. {1}".format(i+1,e[2].strip(' .')))
+            choice = vim.eval('input("choose via index:")')
+            try:
+                ch = int(choice)
+            except:
+                return
+        vim.command('cc %i'%ch)
+def vim_local_arg_ask_kws(*args):
+    fn = vim.eval('expand("%:p")')
+    vim_query_kws(
+        query = args and ','.join(args) or vim.current.line,
+        fn_ln_kw = [(fn,l+1,vim.current.buffer[l]) for l in rindices(rexkw,vim.current.buffer)]
+        )
+def vim_rst_arg_ask_kws(*args):
+    vim_query_kws(args and ','.join(args) or vim.current.line)
 
 import webbrowser as wb
 for brwsrname in [None,'firefox','chrome','chromium','safari']:
@@ -301,4 +330,9 @@ nnoremap <silent> <leader>etd :py3 ReTitle(1)<CR>
 command! -narg=1 U py3 UnderLine(<f-args>) 
 command! -narg=1 T py3 TitleLine(<f-args>) 
 
+":Ck ==> list keyword lines of current file, containing arg words
+":CK ==> list keywords in all rst and py files under current dir
+"use current line if without parameters
+command! -narg=* Ck py3 vim_local_arg_ask_kws(<f-args>) 
+command! -narg=* CK py3 vim_rst_arg_ask_kws(<f-args>)
 
