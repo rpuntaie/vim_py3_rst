@@ -13,17 +13,17 @@ from itertools import tee
 #py3 related: 
 #  eval current range or line in python, print to stdout or __pyout__ and remember in "*"
 __name__ = "__vim__"
-def file_to_name(fl):
-    for x in reversed(fl.split(os.sep)[1:]):
-        if x in sys.modules:
+def file_to_name(apyfile):
+    for splithere in reversed(apyfile.split(os.sep)[1:]):
+        if splithere in sys.modules:
             break
     else:
-        x = os.path.normpath(os.path.expanduser('~')).split(os.sep)[-1]
+        splithere = os.path.normpath(os.path.expanduser('~')).split(os.sep)[-1]
     try:
-        rst = fl.split(os.sep+x+os.sep)[1][:-3]
-        return (x+'.'+rst).replace(os.sep,'.').strip('.')
+        rst = apyfile.split(os.sep+splithere+os.sep)[1][:-3]
+        return (splithere+'.'+rst).replace(os.sep,'.').strip('.')
     except:
-        return fl.split(os.sep)[-1][:-3]
+        return apyfile.split(os.sep)[-1][:-3]
 def py3_get_pyout(): 
     pyout = [b for b in vim.buffers if b.name and b.name.find('__pyout__')!=-1]
     if pyout: 
@@ -187,7 +187,7 @@ def TitleLine(chr):
     vim.current.buffer[pos:pos+1] = [tline,rcline,tline]
 def RstIndex():
     index_dir()
-    tags=','.join([str(x.absolute()) for x in Path('.').glob("**/.tags")])
+    tags=','.join([str(atagf.absolute()) for atagf in Path('.').glob("**/.tags")])
     vim.eval('''execute("set tags=./.tags,.tags,'''+tags.replace('\\','/')+'")')
 def ListTable(join):
     c_r=vim.current.range
@@ -236,7 +236,10 @@ def vim_rst_arg_ask_kws(*args):
     vim_query_kws(args and ','.join(args) or vim.current.line)
 
 import webbrowser as wb
-for brwsrname in [None,'firefox','chrome','chromium','safari']:
+browsers=[None,'firefox','chrome','chromium','safari']
+if sys.platform=='linux':
+    browsers=browsers[1:] #don't use None for Linux
+for brwsrname in browsers:
     try:
         browser = wb.get(brwsrname)
     except: 
