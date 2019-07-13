@@ -35,7 +35,7 @@ or the current line.
 
 ``<leader>jt``: profile the selected code using ``timeit`` (within a ``.py`` file)
 
-.. note::
+.. note:: Evaluation of commented code
 
   If the visual selection starts with a comment char, 
   the block is trimmed beyond the comment char before evaluation.
@@ -69,7 +69,7 @@ All possibilities are in `ReTable`_.
 Tables
 ``````
 
-These use the cursor position, not the visual selection.
+These functions use the cursor position, not the visual selection.
 
 - ``ReformatTable`` creates table from e.g. double space separated format
 - ``ReflowTable`` adapts table to new first line
@@ -100,6 +100,7 @@ Example::
 
 Change the number of "-" in the top line,
 then ``,etr`` adapts the rest to those widths.
+Note: I have ``let mapleader = ","`` in my ``vimrc``.
 
 Reformat a range of RST
 ```````````````````````
@@ -125,11 +126,31 @@ Preview
 ```````
 
 Preview can be done either on the visual selection or on the whole document.
+It uses `Show`_. The `rstdoc`_ ``outinfo`` parameter specifies format and whether
+`Docutils`_, `Sphinx`_ or `Pandoc`_ is used.
 
-- `ShowHtml`_ uses `Docutils`_ (``<leader>lh``) 
-- `ShowSphinx`_ uses `Sphinx`_   (``<leader>lx``) 
+- html ``<leader>lh`` defaults to `Docutils`_
+- sphinc_html ``<leader>lx`` defaults to `Sphinx`_
+- pdf ``<leader>lt`` defaults to `Pandoc`_
 
-.. note:: This is still work in progress.
+Keyword Lines
+`````````````
+
+`rstdoc`_  
+(the function ``yield_with_kw`` in `rstdoc.dcx <https://github.com/rpuntaie/rstdoc/blob/master/rstdoc/dcx.py>`__)
+sees a RST comment of shape::
+
+  .. {kw1,kw2,...}
+
+as a keyword line. Such lines can e searched with
+
+- ``:Ck`` lists keyword lines of current file, containing the words provided as args
+- ``:CK`` lists keyword lines in all rst and py files under current dir, containing the words provided as args
+
+If no args are given in the command line, then the words in the current line are used as args.
+
+- ``:Cp`` goes to the previous such keyword line and 
+- ``:Cn`` to the next one.
 
 .. _`rstdoc`: https://github.com/rpuntaie/rstdoc
 .. _`vim_py3_rst`: https://github.com/rpuntaie/vim_py3_rst/blob/master/plugin/vim_py3_rst.vim
@@ -140,14 +161,14 @@ Preview can be done either on the visual selection or on the whole document.
 .. _`dcx`: https://github.com/rpuntaie/rstdoc/blob/master/rstdoc/dcx.py
 .. _`RstDcxInit`: https://github.com/rpuntaie/rstdoc
 .. _`RstDcx`: https://github.com/rpuntaie/rstdoc
-.. _`ShowHtml`: https://github.com/rpuntaie/vim_py3_rst/blob/master/plugin/vim_py3_rst.vim
-.. _`ShowSphinx`: https://github.com/rpuntaie/vim_py3_rst/blob/master/plugin/vim_py3_rst.vim
+.. _`Show`: https://github.com/rpuntaie/vim_py3_rst/blob/master/plugin/vim_py3_rst.vim
 
 .. _`atom-rst-snippets`: https://github.com/jimklo/atom-rst-snippets
 .. _`vimscript`: http://vimdoc.sourceforge.net/htmldoc/usr_41.html
 
 .. _`Docutils`: http://docutils.sourceforge.net/
 .. _`Sphinx`: http://www.sphinx-doc.org/en/stable/
+.. _`Pandoc`: https://github.com/jgm/pandoc
 
 .. _`doctest`: https://docs.python.org/3.6/library/doctest.html
 

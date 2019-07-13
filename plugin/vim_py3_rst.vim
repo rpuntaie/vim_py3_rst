@@ -191,20 +191,20 @@ def RstIndex():
     vim.eval('''execute("set tags=./.tags,.tags,'''+tags.replace('\\','/')+'")')
 def ListTable(join):
     c_r=vim.current.range
-    lt = list(gridtable(c_r[:],join))
-    vim.current.buffer[c_r.start:c_r.end+1] = lt
+    lsttbl = list(gridtable(c_r[:],join))
+    vim.current.buffer[c_r.start:c_r.end+1] = lsttbl
 def ReFlow(join,sentence):
     c_r=vim.current.range
-    lt = list(reflow(c_r[:],join,sentence))
-    vim.current.buffer[c_r.start:c_r.end+1] = lt
+    lsttbl = list(reflow(c_r[:],join,sentence))
+    vim.current.buffer[c_r.start:c_r.end+1] = lsttbl
 def UnTable():
     c_r=vim.current.range
-    lt = list(untable(c_r[:]))
-    vim.current.buffer[c_r.start:c_r.end+1] = lt
+    lsttbl = list(untable(c_r[:]))
+    vim.current.buffer[c_r.start:c_r.end+1] = lsttbl
 def ReTable():
     c_r=vim.current.range
-    lt = list(retable(c_r[:]))
-    vim.current.buffer[c_r.start:c_r.end+1] = lt
+    lsttbl = list(retable(c_r[:]))
+    vim.current.buffer[c_r.start:c_r.end+1] = lsttbl
 #find in tag lines of format .. {tag1, tag2,...}
 def vim_query_kws (query,fn_ln_kw=None,ask=True):
     #query = 'a'
@@ -318,6 +318,10 @@ endif
 
 vnoremap <silent> <leader>lh :py3 Show()<CR>
 noremap <silent> <leader>lh :py3 Show()<CR>
+vnoremap <silent> <leader>lt :py3 Show('pdf')<CR>
+noremap <silent> <leader>lt :py3 Show('pdf')<CR>
+vnoremap <silent> <leader>lx :py3 Show('sphinx_html')<CR>
+noremap <silent> <leader>lx :py3 Show('sphinx_html')<CR>
 
 map <silent> <leader>jj :py3 py3_print_current_range()<CR>
 map <silent> <leader>jk :py3 py3_eval_current_range()<CR>
@@ -335,7 +339,9 @@ command! -narg=1 T py3 TitleLine(<f-args>)
 
 ":Ck ==> list keyword lines of current file, containing arg words
 ":CK ==> list keywords in all rst and py files under current dir
-"use current line if without parameters
+"use current line if without args
 command! -narg=* Ck py3 vim_local_arg_ask_kws(<f-args>) 
 command! -narg=* CK py3 vim_rst_arg_ask_kws(<f-args>)
+command! -narg=0 Cp ?\.\. {
+command! -narg=0 Cn /\.\. {
 
