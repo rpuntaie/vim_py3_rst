@@ -1,18 +1,45 @@
-" encoding: utf-8 
+" encoding: utf-8
+
+""
+" VIM_PY3_RST                                                   *vim-py3-rst*
+"                                                               *vim_py3_rst*
+"
+" `vim_py3_rst` Provides shortcuts and utility functions
+"
+" - to run python code using Vim's `:py3`: |vim_py3|
+"
+" - to edit `reStructuredText`: |vim_rst|
+"
+" Note: Code to generate this doc is in `vim_py3_rst.vim`.
+""
 
 py3 << EOF
-
+# #generate readme and vim help
+# with open(__file__) as f:
+#   lns = f.readlines()
+# from rstdoc.dcx import *
+# vimhelpdir=normjoin(dirname(dirname(__file__)),'doc')
+# import os
+# os.makedirs(vimhelpdir,exist_ok=True)
+# vimhelp=normjoin(vimhelpdir,stem(base(__file__))+'.txt')
+# readme=normjoin(dirname(dirname(__file__)),'README')
+# with open(vimhelp,'w') as f:
+#   for a, b in in2s(list(rindices(re.compile('^""'), lns))):
+#     f.writelines(x and x[2:] or '\n' for x in lns[a:b])
+#   f.write('\n vim:tw=78:ts=8:noet:ft=help:norl:')
+# with open(readme,'w') as f:
+#   f.writelines(open(vimhelp).readlines())
 import vim
 import types
 import os
-import doctest 
+import doctest
 from timeit import timeit
 from pathlib import Path
 from itertools import tee
-
-#py3 related: 
-#  eval current range or line in python, print to stdout or __pyout__ and remember in "*"
+import re
 __name__ = "__vim__"
+conditional=re.compile(
+        r'(\s*def\s+|\s*if\s+|\s*elif\s+|\s*while\s+|\s*for\s+[\w,\s]+in\s+)(.*)(:.*)')
 def file_to_name(apyfile):
     for splithere in reversed(apyfile.split(os.sep)[1:]):
         if splithere in sys.modules:
@@ -24,14 +51,15 @@ def file_to_name(apyfile):
         return (splithere+'.'+rst).replace(os.sep,'.').strip('.')
     except:
         return apyfile.split(os.sep)[-1][:-3]
-def py3_get_pyout(): 
+def py3_get_pyout():
     pyout = [b for b in vim.buffers if b.name and b.name.find('__pyout__')!=-1]
-    if pyout: 
+    if pyout:
         wnd=[(w,i) for i,w in enumerate(vim.windows) if w.buffer.name == pyout[0].name]
         if wnd:
             pyout = (pyout[0],wnd[0][0],wnd[0][1]+1)
-    return pyout
-def py3_print_result_in_vim(expr, result): 
+            return pyout
+    return None
+def py3_print_result_in_vim(expr, result):
     if isinstance(result,types.GeneratorType):
         res_str = str(list(tee(result)))
     else:
@@ -44,6 +72,7 @@ def py3_print_result_in_vim(expr, result):
     pyout=py3_get_pyout()
     if pyout:
         res_out=['>>> '+e for e in expr.splitlines()]+res_str.splitlines()+['']
+        print(pyout)
         pyout[0].range(0,0).append(res_out)
         pyout[1].cursor = (1,0)
         vim.command('exe {0} . "wincmd w"'.format(pyout[2]))
@@ -51,14 +80,14 @@ def py3_print_result_in_vim(expr, result):
         vim.command("wincmd p")
     else:
         print(res_str)
-def vim_current_range(): 
+def vim_current_range():
     c_r=vim.current.range
     if not c_r:
         c_r=[vim.current.line]
     b = (0,0)
     e = (0,-1)
     if len(c_r)==1:
-        b = vim.current.buffer.mark('<')   
+        b = vim.current.buffer.mark('<')
         e = vim.current.buffer.mark('>')
     if b and e and getattr(
           c_r,'start',-2)+1 == b[0] and b[1] <= e[1] and e[1] < len(c_r[0]):
@@ -80,12 +109,10 @@ def py3_eval(code):
         ,'<string>','exec'),globals()
         )
     eval(compile(code,'<string>','exec'),globals())
-def py3_eval_current_range(): 
+def py3_eval_current_range():
     rngstr,_ = vim_current_range()
     py3_eval(rngstr)
 def py3_ready_for_eval(line):
-    conditional=re.compile(
-        r'(\s*def\s+|\s*if\s+|\s*elif\s+|\s*while\s+|\s*for\s+[\w,\s]+in\s+)(.*)(:.*)')
     cm = conditional.match(line)
     if cm:
         toeval =  cm.group(2)
@@ -100,16 +127,16 @@ def make_py_res(rngstr):
     else:
         rl[0] = py3_ready_for_eval(rl[0])
     return '\n'.join(rl)
-def py3_print_current_range(): 
+def py3_print_current_range():
     rngstr,_ = vim_current_range()
-    try: 
+    try:
         py3_eval(make_py_res(rngstr))
         result = eval("py_res",globals())
-    except: 
+    except:
         py3_eval(rngstr)
         result = None
     py3_print_result_in_vim(rngstr,result)
-def py3_doctest_current_range(): 
+def py3_doctest_current_range():
     rngstr,_ = vim_current_range()
     test = doctest.DocTestParser().get_doctest(rngstr,globals(), 'vimv', None, 0)
     runner = doctest.DocTestRunner(optionflags=doctest.ELLIPSIS|doctest.IGNORE_EXCEPTION_DETAIL)
@@ -119,15 +146,11 @@ def py3_timeit():
     rngstr,_ = vim_current_range()
     tim = timeit(rngstr,'\n'.join(vim.current.buffer),number=1000)
     py3_print_result_in_vim('timeit('+rngstr+')',tim)
-
-#template using bottle SimpleTemplate (stpl)
-
+# template using bottle SimpleTemplate (stpl)
 import stpl
-
 template_stdout = []
 def py3_expand_stpl():
     rngstr,from_to = vim_current_range()
-
     d = os.path.dirname
     tpl = stpl.SimpleTemplate(source=rngstr
         ,lookup=[os.getcwd(),d(vim.current.buffer.name),d(d(vim.current.buffer.name))])
@@ -143,15 +166,13 @@ def py3_expand_stpl():
     globals().update(newenv)
     if fl:
         globals()['__file__'] = fl
-
     t = ''.join(template_stdout)
     if from_to:
         res = vim.current.range[0][:from_to[0]]+t+vim.current.range[0][from_to[1]:]
         vim.current.range[:] = res.splitlines()
     else:
         vim.current.range[:] = t.splitlines()
-
-#rst related
+# from rstdoc
 try:
     from rstdoc.retable import reformat_table, reflow_table, re_title, get_bounds, title_some
     from rstdoc.dcx import index_dir, convert_in_tempdir, startfile, rexkw, grep, yield_with_kw, rindices
@@ -205,7 +226,7 @@ def ReTable():
     c_r=vim.current.range
     lsttbl = list(retable(c_r[:]))
     vim.current.buffer[c_r.start:c_r.end+1] = lsttbl
-#find in tag lines of format .. {tag1, tag2,...}
+# find in tag lines of format .. {tag1, tag2,...}
 def vim_query_kws (query,fn_ln_kw=None,ask=True):
     #query = 'a'
     #fn_ln_kw = [('a/b',1,'a b'),('c/d',1,'c d')]
@@ -234,7 +255,6 @@ def vim_local_arg_ask_kws(*args):
         )
 def vim_rst_arg_ask_kws(*args):
     vim_query_kws(args and ','.join(args) or vim.current.line)
-
 import webbrowser as wb
 browsers=[None,'firefox','chrome','chromium','safari']
 if sys.platform=='linux':
@@ -242,7 +262,7 @@ if sys.platform=='linux':
 for brwsrname in browsers:
     try:
         browser = wb.get(brwsrname)
-    except: 
+    except:
         continue
     if browser:
         break
@@ -265,16 +285,20 @@ def Show(
         browser.open(outfile)
     else:
         startfile(outfile)
-
-#titles
+# titles
 vim.command("nnoremap <silent> <leader>h1 :T#<CR>")
 vim.command("noremap <silent> <leader>h2 :T*<CR>")
 for i,x in enumerate(title_some):
     vim.command("nnoremap <silent> <leader>h{} :U{}<CR>".format(3+i,x))
-
 EOF
 
-"Create a python output buffer
+
+if has("autocmd")
+    autocmd BufEnter *.py :py3 __file__ = vim.current.buffer.name
+    autocmd BufEnter *.py :py3 __name__ = file_to_name(vim.current.buffer.name)
+endif
+
+
 function! PyOut()
     let cwn = winnr()
     let id = '__pyout__'
@@ -307,15 +331,90 @@ function! PyOut()
     exec cwn.'wincmd w'
 endf
 
+""
+" ==============================================================================
+" VIM_PY3_RST                                                   *vim-py3*
+"                                                               *vim_py3*
+"
+" Since Vim has Python 3 embedded one can use all of Python directly
+" from within Vim.
+" This allows to immediately run and thus test code you write.
+" 
+" These mappings apply either to the visual area (can also be within one line)
+" or the current line.
+"
+" `<leader>jj`: evaluate and print
+"
+"   If there is a `__pyout__` buffer (`:PyOut` or `<leader>jw`),
+"   then printing goes to that buffer.
+"
+" `<leader>jk`: only evaluate
+"
+" `<leader>je`: expand bottle `SimpleTemplate`
+"
+" `<leader>jd`: evaluate the python `doctest` in the visual range
+"
+" `<leader>jt`: profile the selected code using `timeit`
+"               (within a `.py` file)
+"
+" `return`, `yield`, ... are skipped, if evaluating only one line.
+"
+" Evaluation of commented code:
+"
+"   If the visual selection starts with a comment char,
+"   the block is trimmed beyond the comment char before evaluation.
+"
+"   This allows to evaluate commented code, but for
+"   mixed comments and code, the first line must not be a comment.
+"   It can be an empty line.
+"
+"   ` >#.%,\\t` are comment chars.
+"
+""
 command! -narg=0 PyOut call PyOut()
 map <silent> <leader>jw :PyOut<CR>
+map <silent> <leader>jj :py3 py3_print_current_range()<CR>
+map <silent> <leader>jk :py3 py3_eval_current_range()<CR>
+map <silent> <leader>je :py3 py3_expand_stpl()<CR>
+map <silent> <leader>jd :py3 py3_doctest_current_range()<CR>
+map <silent> <leader>jt :py3 py3_timeit()<CR>
 
-if has("autocmd")
-    autocmd BufEnter *.py :py3 __file__ = vim.current.buffer.name
-    autocmd BufEnter *.py :py3 __name__ = file_to_name(vim.current.buffer.name)
-    autocmd BufEnter *.py :map <leader>jt :py3 py3_timeit()<CR>
-endif
 
+""
+" ==============================================================================
+" VIM_PY3_RST                                                   *vim-rst*
+"                                                               *vim_rst*
+"
+" The functionality is provided by the python package `rstdoc`,
+" which uses `.rest` for main docs, `.rst` for included files, or templates.
+"
+" See https://rstdoc.readthedocs.io/en/latest/index.html
+"
+" The following system commands provided by `rstdoc` can be directly used.
+"
+" Init documentation:
+"
+" - `!rstdoc --stpl <foldername>` uses templating via `.stpl` files
+" - `!rstdoc --rest <foldername>` uses reStructuredText only,
+"   via `.rest` files
+"
+" Update tags:
+"
+" - `!rstdoc` updates `.tags` and link files files in all subdirectories.
+"
+"
+" Preview
+"
+" This preview can be done either on the visual selection
+" or on the whole document.
+" It uses `rstdoc`, whose `outinfo` parameter specifies format and whether
+" `Docutils`, `Sphinx` or `Pandoc` is used.
+"
+" `<leader>lh`, html, defaults to `Docutils`
+" `<leader>lx`, sphinc_html, defaults to `Sphinx`
+" `<leader>lt`, pdf, defaults to `Pandoc`
+"
+""
 vnoremap <silent> <leader>lh :py3 Show()<CR>
 noremap <silent> <leader>lh :py3 Show()<CR>
 vnoremap <silent> <leader>lt :py3 Show('pdf')<CR>
@@ -323,24 +422,79 @@ noremap <silent> <leader>lt :py3 Show('pdf')<CR>
 vnoremap <silent> <leader>lx :py3 Show('sphinx_html')<CR>
 noremap <silent> <leader>lx :py3 Show('sphinx_html')<CR>
 
-map <silent> <leader>jj :py3 py3_print_current_range()<CR>
-map <silent> <leader>jk :py3 py3_eval_current_range()<CR>
-map <silent> <leader>je :py3 py3_expand_stpl()<CR>
-map <silent> <leader>jd :py3 py3_doctest_current_range()<CR>
-
+""
+" Tables
+"
+" In Vim, visually select, then do `:'<,'> py3 Xxx(args)`):
+"
+" `ListTable`: convert grid tables to list table
+" `ReFlow`: re-flow grid tables and paragraphs
+" `UnTable`: convert 2- or 3-column.list tables to paragraphs
+" (1st column is ID, i.e. no blanks)
+" `ReTable`: transform list table to grid table
+"
+" The following functions use the cursor position, not the visual selection.
+"
+" `ReformatTable` creates table from e.g. double space separated format
+" `ReflowTable` adapts table to new first line
+" `ReTitle` fixes the header underlines
+" `UnderLine` and `TitleLine` add underline or title lines
+"
+" The implementation is in `rstdoc.retable`.
+"
+" `<leader>etf` formats into table columns, where there are at least 2 spaces
+" `<leader>etr` reformats based on the length of the first border line
+"
+""
 nnoremap <silent> <leader>etf :py3 ReformatTable()<CR>
 nnoremap <silent> <leader>etr :py3 ReflowTable()<CR>
+
+""
+" Title
+"
+" Title underline within one `.rest` must be consistent.
+"
+" `<leader>ehx`
+"
+" with `x∈{1,..,f}` helps keep the consistency.
+" See `title_some` in `rstdoc.retable`.
+"
+" `<leader>ett` reformats the title underlining
+" `<leader>etu` uses the next title up
+" `<leader>etd` uses the next title down
+"
+""
+command! -narg=1 U py3 UnderLine(<f-args>)
+command! -narg=1 T py3 TitleLine(<f-args>)
 nnoremap <silent> <leader>ett :py3 ReTitle()<CR>
 nnoremap <silent> <leader>etu :py3 ReTitle(-1)<CR>
 nnoremap <silent> <leader>etd :py3 ReTitle(1)<CR>
 
-command! -narg=1 U py3 UnderLine(<f-args>) 
-command! -narg=1 T py3 TitleLine(<f-args>) 
 
-":Ck ==> list keyword lines of current file, containing arg words
-":CK ==> list keywords in all rst and py files under current dir
-"use current line if without args
-command! -narg=* Ck py3 vim_local_arg_ask_kws(<f-args>) 
+""
+" Keyword Lines
+"
+" The function `yield_with_kw` 
+" (in https://github.com/rpuntaie/rstdoc/blob/master/rstdoc/dcx.py)
+" sees a RST comment of shape::
+"
+"   .. {kw1,kw2,...}
+"
+" as a keyword line. Such lines can be searched with
+"
+" `:Ck` lists keyword lines of current file,
+" containing the words provided as args
+" `:CK` lists keyword lines in all rst and py files under current dir,
+" containing the words provided as args
+"
+" If no args are given in the command line,
+" then the words in the current line are used as args.
+"
+" `:Cp` goes to the previous such keyword line and
+" `:Cn` to the next one.
+"
+""
+command! -narg=* Ck py3 vim_local_arg_ask_kws(<f-args>)
 command! -narg=* CK py3 vim_rst_arg_ask_kws(<f-args>)
 command! -narg=0 Cp ?\.\. {
 command! -narg=0 Cn /\.\. {
