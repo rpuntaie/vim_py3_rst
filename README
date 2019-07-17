@@ -8,23 +8,19 @@ VIM_PY3_RST                                                   *vim-py3-rst*
 
 - to edit `reStructuredText`: |vim_rst|
 
-Note: code to generate this doc is in `vim_py3_rst.vim`.
+Note: Code to generate this doc is in `vim_py3_rst.vim`.
 
 ==============================================================================
 VIM_PY3_RST                                                   *vim-py3*
                                                               *vim_py3*
 
-Since Vim has Python 3 embedded one can use all of Python directly
-from within Vim.
-This allows to immediately run and thus test code you write.
-
 These mappings apply either to the visual area (can also be within one line)
 or the current line.
 
-`<leader>jj`: evaluate and print
+`<leader>jj`: evaluate and print.
+              If there is a `__pyout__` buffer ...
 
-  If there is a `__pyout__` buffer (`:PyOut` or `<leader>jw`),
-  then printing goes to that buffer.
+`<leader>jw`, `:PyOut`: printing goes to that buffer.
 
 `<leader>jk`: only evaluate
 
@@ -35,18 +31,12 @@ or the current line.
 `<leader>jt`: profile the selected code using `timeit`
               (within a `.py` file)
 
+`<leader>jh`: print python help of word under cursor
+
 `return`, `yield`, ... are skipped, if evaluating only one line.
 
-Evaluation of commented code:
-
-  If the visual selection starts with a comment char,
-  the block is trimmed beyond the comment char before evaluation.
-
-  This allows to evaluate commented code, but for
-  mixed comments and code, the first line must not be a comment.
-  It can be an empty line.
-
-  ` >#.%,\\t` are comment chars.
+` >#.%,\\t` in the first line of visual determines n chars skipped at the
+beginning of each line. If needed, start visual with an empty line.
 
 
 ==============================================================================
@@ -60,21 +50,13 @@ See https://rstdoc.readthedocs.io/en/latest/index.html
 
 The following system commands provided by `rstdoc` can be directly used.
 
-Init documentation:
-
-- `!rstdoc --stpl <foldername>` uses templating via `.stpl` files
-- `!rstdoc --rest <foldername>` uses reStructuredText only,
-  via `.rest` files
-
-Update tags:
-
-- `!rstdoc` updates `.tags` and link files files in all subdirectories.
-
+`!rstdoc --stpl <foldername>`: produce sample project with `.stpl` files
+`!rstdoc --rest <foldername>`: produce sample project `.rest` files
+`!rstdoc`: updates `.tags` and link files files in all subdirectories.
 
 Preview
 
-This preview can be done either on the visual selection
-or on the whole document.
+This preview can be done either on the visual or on the whole document.
 It uses `rstdoc`, whose `outinfo` parameter specifies format and whether
 `Docutils`, `Sphinx` or `Pandoc` is used.
 
@@ -90,56 +72,55 @@ In Vim, visually select, then do `:'<,'> py3 Xxx(args)`):
 `ListTable`: convert grid tables to list table
 `ReFlow`: re-flow grid tables and paragraphs
 `UnTable`: convert 2- or 3-column.list tables to paragraphs
-(1st column is ID, i.e. no blanks)
+           (1st column is ID, i.e. no blanks)
 `ReTable`: transform list table to grid table
 
-The following functions use the cursor position, not the visual selection.
+The following functions use the cursor position, not the visual.
 
-`ReformatTable` creates table from e.g. double space separated format
-`ReflowTable` adapts table to new first line
-`ReTitle` fixes the header underlines
-`UnderLine` and `TitleLine` add underline or title lines
+`ReformatTable`: creates table from e.g. double space separated format
+`ReflowTable`: adapts table to new first line
+`ReTitle`: fixes the header underlines
+`UnderLine`: add underline
+`TitleLine`: add title lines
 
 The implementation is in `rstdoc.retable`.
 
-`<leader>etf` formats into table columns, where there are at least 2 spaces
-`<leader>etr` reformats based on the length of the first border line
+`<leader>etf`: format into table columns, where there are at least 2 spaces
+`<leader>etr`: reformat based on the length of the first border line
 
 
-Title
+Headers
 
-Title underline within one `.rest` must be consistent.
+Header underlines within one `.rest` must be consistent.
 
-`<leader>ehx`
+`<leader>ehx`: with `x∈{1,..,f}`, to make header of depth `x`.
+               See `title_some` in `rstdoc.retable`.
 
-with `x∈{1,..,f}` helps keep the consistency.
-See `title_some` in `rstdoc.retable`.
-
-`<leader>ett` reformats the title underlining
-`<leader>etu` uses the next title up
-`<leader>etd` uses the next title down
+`<leader>ett` reformats the header underlining
+`<leader>etu` transform to next header up
+`<leader>etd` transform to next header down
 
 
 Keyword Lines
 
-The function `yield_with_kw` 
-(in https://github.com/rpuntaie/rstdoc/blob/master/rstdoc/dcx.py)
-sees a RST comment of shape::
+A RST comment of shape::
 
   .. {kw1,kw2,...}
 
-as a keyword line. Such lines can be searched with
+is a keyword line.
+See `yield_with_kw()` in
+https://github.com/rpuntaie/rstdoc/blob/master/rstdoc/dcx.py.
 
-`:Ck` lists keyword lines of current file,
-containing the words provided as args
-`:CK` lists keyword lines in all rst and py files under current dir,
-containing the words provided as args
+Such lines can be searched with
 
-If no args are given in the command line,
-then the words in the current line are used as args.
+`:Ck`: list keyword lines of current file, containing args
+`:CK`: list keyword lines in all rst and py files under current dir,
+       containing args
 
-`:Cp` goes to the previous such keyword line and
-`:Cn` to the next one.
+If no args are given, then the words in the current line are used as args.
+
+`:Cp`: go to the previous keyword line
+`:Cn`: go to the next keyword line
 
 
  vim:tw=78:ts=8:noet:ft=help:norl:
