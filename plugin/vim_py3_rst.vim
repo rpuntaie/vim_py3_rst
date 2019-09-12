@@ -37,6 +37,13 @@ from timeit import timeit
 from pathlib import Path
 from itertools import tee
 import re
+import stpl
+import webbrowser as wb
+import string
+import numpy as np
+from time import sleep, time, mktime
+from docutils.core import publish_string
+from tempfile import mkdtemp,mkstemp
 __name__ = "__vim__"
 conditional=re.compile(
         r'(\s*def\s+|\s*if\s+|\s*elif\s+|\s*while\s+|\s*for\s+[\w,\s]+in\s+)(.*)(:.*)')
@@ -147,7 +154,6 @@ def py3_timeit():
     tim = timeit(rngstr,'\n'.join(vim.current.buffer),number=1000)
     py3_print_result_in_vim('timeit('+rngstr+')',tim)
 # template using bottle SimpleTemplate (stpl)
-import stpl
 template_stdout = []
 def py3_expand_stpl():
     rngstr,from_to = vim_current_range()
@@ -175,7 +181,7 @@ def py3_expand_stpl():
 # from rstdoc
 try:
     from rstdoc.retable import reformat_table, reflow_table, re_title, get_bounds, title_some
-    from rstdoc.dcx import index_dir, convert_in_tempdir, startfile, rexkw, grep, yield_with_kw, rindices
+    from rstdoc.dcx import index_dir, convert_in_tempdir, startfile, yield_with_kw, rindices
     from rstdoc.listtable import gridtable
     from rstdoc.reflow import reflow
     from rstdoc.untable import untable
@@ -226,6 +232,22 @@ def ReTable():
     c_r=vim.current.range
     lsttbl = list(retable(c_r[:]))
     vim.current.buffer[c_r.start:c_r.end+1] = lsttbl
+def Anchor():
+    c_l = vim.current.line
+    c_l_strip = c_l.strip()
+    if c_l_strip:
+        nspace = c_l.find(c_l_strip)
+        Id = ''.join([
+            x for x in c_l_strip if x not in string.punctuation+' \t'])
+    else:
+        nspace = 0
+        mt = int(time()-mktime((2017,12,31,24,0,0,0,0,0)))
+        Id = ''.join(list(np.base_repr(mt,36))).lower()
+    vim.eval("setreg('i','%s')"%Id)
+    pos=vim.current.window.cursor[0]-1
+    while pos>0 and vim.current.buffer[pos]:
+        pos = pos - 1
+    vim.current.buffer[pos:pos+1] = ['',' '*nspace+'.. _`{}`:'.format(Id), '' ]
 # find in tag lines of format .. {tag1, tag2,...}
 def vim_query_kws (query,fn_ln_kw=None,ask=True):
     #query = 'a'
@@ -248,14 +270,17 @@ def vim_query_kws (query,fn_ln_kw=None,ask=True):
                 return
         vim.command('cc %i'%ch)
 def vim_local_arg_ask_kws(*args):
+    import rstdoc.dcx
     fn = vim.eval('expand("%:p")')
     vim_query_kws(
-        query = args and ','.join(args) or vim.current.line,
-        fn_ln_kw = [(fn,l+1,vim.current.buffer[l]) for l in rindices(rexkw,vim.current.buffer)]
+        query=args and ','.join(args) or vim.current.line,
+        fn_ln_kw=[(fn,l+1,vim.current.buffer[l]) for l in rindices(
+            rstdoc.dcx.rexkw,vim.current.buffer)]
         )
 def vim_rst_arg_ask_kws(*args):
-    vim_query_kws(args and ','.join(args) or vim.current.line)
-import webbrowser as wb
+    import rstdoc.dcx
+    vim_query_kws(args and ','.join(args) or vim.current.line,
+            fn_ln_kw=rstdoc.dcx.rexkw)
 browsers=[None,'firefox','chrome','chromium','safari']
 if sys.platform=='linux':
     browsers=browsers[1:] #don't use None for Linux
@@ -266,10 +291,6 @@ for brwsrname in browsers:
         continue
     if browser:
         break
-from time import sleep
-from docutils.core import publish_string
-from tempfile import mkdtemp,mkstemp
-import os
 __confdir = os.path.expanduser('~')
 __tmpdir = os.path.join(__confdir,'tmp')
 def Show(
@@ -443,6 +464,7 @@ nnoremap <silent> <leader>etr :py3 ReflowTable()<CR>
 " `<leader>ett` reformats the header underlining
 " `<leader>etu` transform to next header up
 " `<leader>etd` transform to next header down
+" `<leader>eta`: anchor for item or header line, random if on empty line
 "
 ""
 command! -narg=1 U py3 UnderLine(<f-args>)
@@ -450,6 +472,7 @@ command! -narg=1 T py3 TitleLine(<f-args>)
 nnoremap <silent> <leader>ett :py3 ReTitle()<CR>
 nnoremap <silent> <leader>etu :py3 ReTitle(-1)<CR>
 nnoremap <silent> <leader>etd :py3 ReTitle(1)<CR>
+nnoremap <silent> <leader>eta :py3 Anchor()<CR>
 
 
 ""
@@ -459,7 +482,7 @@ nnoremap <silent> <leader>etd :py3 ReTitle(1)<CR>
 "
 "   .. {kw1,kw2,...}
 "
-" is a keyword line.
+" is seen as keyword line according ``rstdoc.dcx.rexkw``, which can be changed.
 " See `yield_with_kw()` in
 " https://github.com/rpuntaie/rstdoc/blob/master/rstdoc/dcx.py.
 "

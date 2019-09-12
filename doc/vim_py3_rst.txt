@@ -99,6 +99,7 @@ Header underlines within one `.rest` must be consistent.
 `<leader>ett` reformats the header underlining
 `<leader>etu` transform to next header up
 `<leader>etd` transform to next header down
+`<leader>eta`: anchor for item or header line, random if on empty line
 
 
 Keyword Lines
@@ -107,7 +108,7 @@ A RST comment of shape::
 
   .. {kw1,kw2,...}
 
-is a keyword line.
+is seen as keyword line according ``rstdoc.dcx.rexkw``, which can be changed.
 See `yield_with_kw()` in
 https://github.com/rpuntaie/rstdoc/blob/master/rstdoc/dcx.py.
 
