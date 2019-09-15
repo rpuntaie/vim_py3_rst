@@ -301,7 +301,10 @@ def Show(
         lns = vim.current.buffer
     else:
         lns = rngstr.splitlines()
-    outfile = convert_in_tempdir(lns,outinfo=outinfo)
+    d = os.path.dirname
+    outfile = convert_in_tempdir(lns,outinfo=outinfo
+        ,lookup=['.','..',os.getcwd(),d(vim.current.buffer.name),d(d(vim.current.buffer.name))]
+        )
     if outfile.endswith('.html') and browser:
         browser.open(outfile)
     else:
