@@ -41,9 +41,7 @@ import stpl
 import webbrowser as wb
 import string
 import numpy as np
-from time import sleep, time, mktime
-from docutils.core import publish_string
-from tempfile import mkdtemp,mkstemp
+from time import time, mktime
 __name__ = "__vim__"
 conditional=re.compile(
         r'(\s*def\s+|\s*if\s+|\s*elif\s+|\s*while\s+|\s*for\s+[\w,\s]+in\s+)(.*)(:.*)')
@@ -113,9 +111,9 @@ def vim_current_range():
 def py3_eval(code):
     eval(compile(
         '__file__ = r"%s"'%vim.current.buffer.name.replace('\\','/')
-        ,'<string>','exec'),globals()
+        ,'<vim_py3_rst>','exec'),globals()
         )
-    eval(compile(code,'<string>','exec'),globals())
+    eval(compile(code,'<vim_py3_rst>','exec'),globals())
 def py3_eval_current_range():
     rngstr,_ = vim_current_range()
     py3_eval(rngstr)
@@ -181,7 +179,7 @@ def py3_expand_stpl():
 # from rstdoc
 try:
     from rstdoc.retable import reformat_table, reflow_table, re_title, get_bounds, title_some
-    from rstdoc.dcx import index_dir, convert_in_tempdir, startfile, yield_with_kw, rindices
+    from rstdoc.dcx import index_dir, convert_in_tempdir, startfile, yield_with_kw, rindices, stem, base
     from rstdoc.listtable import gridtable
     from rstdoc.reflow import reflow
     from rstdoc.untable import untable
@@ -293,8 +291,10 @@ for brwsrname in browsers:
         break
 __confdir = os.path.expanduser('~')
 __tmpdir = os.path.join(__confdir,'tmp')
-def Show(
-    outinfo='rst_html' #docx, ... , rst_html, ...  eps, svg, ...
+VimShowRstTempSrc = lambda fn: stem(stem(base(fn)))
+def VimShowRst(
+    outfile=None
+    ,outinfo='rst_html' #docx, ... , rst_html, ...  eps, svg, ...
     ):
     rngstr,_ = vim_current_range()
     if '\n' not in rngstr:
@@ -302,7 +302,10 @@ def Show(
     else:
         lns = rngstr.splitlines()
     d = os.path.dirname
-    outfile = convert_in_tempdir(lns,outinfo=outinfo
+    bb = os.path.basename
+    if outfile is None:
+        outinfo = VimShowRstTempSrc(vim.current.buffer.name)+'/'+outinfo
+    outfile = convert_in_tempdir(lns,outfile,outinfo=outinfo
         ,lookup=['.','..',os.getcwd(),d(vim.current.buffer.name),d(d(vim.current.buffer.name))]
         )
     if outfile.endswith('.html') and browser:
@@ -413,20 +416,24 @@ map <silent> <leader>jh :py3 help('<C-R><C-W>')<CR>
 " Preview
 "
 " This preview can be done either on the visual or on the whole document.
-" It uses `rstdoc`, whose `outinfo` parameter specifies format and whether
-" `Docutils`, `Sphinx` or `Pandoc` is used.
+" It uses `VimShowRst`, whose `outinfo` parameter specifies format and whether
+" `Docutils`, `Sphinx` or `Pandoc` is used (see rstdoc).
+" One can define one's own global `VimShowRst` python function and, e.g.,
+" to provide an `outfile` parameter not in the generated temporary directory.
+" One can also override `VimShowRstTempSrc`, to control the path below the
+" generated temporary directory.
 "
 " `<leader>lh`, html, defaults to `Docutils`
 " `<leader>lx`, sphinc_html, defaults to `Sphinx`
 " `<leader>lt`, pdf, defaults to `Pandoc`
 "
 ""
-vnoremap <silent> <leader>lh :py3 Show()<CR>
-noremap <silent> <leader>lh :py3 Show()<CR>
-vnoremap <silent> <leader>lt :py3 Show('pdf')<CR>
-noremap <silent> <leader>lt :py3 Show('pdf')<CR>
-vnoremap <silent> <leader>lx :py3 Show('sphinx_html')<CR>
-noremap <silent> <leader>lx :py3 Show('sphinx_html')<CR>
+vnoremap <silent> <leader>lh :py3 VimShowRst()<CR>
+noremap <silent> <leader>lh :py3 VimShowRst()<CR>
+vnoremap <silent> <leader>lt :py3 VimShowRst(outinfo='pdf')<CR>
+noremap <silent> <leader>lt :py3 VimShowRst(outinfo='pdf')<CR>
+vnoremap <silent> <leader>lx :py3 VimShowRst(outinfo='sphinx_html')<CR>
+noremap <silent> <leader>lx :py3 VimShowRst(outinfo='sphinx_html')<CR>
 
 ""
 " Tables

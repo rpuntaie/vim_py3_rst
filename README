@@ -57,8 +57,12 @@ The following system commands provided by `rstdoc` can be directly used.
 Preview
 
 This preview can be done either on the visual or on the whole document.
-It uses `rstdoc`, whose `outinfo` parameter specifies format and whether
-`Docutils`, `Sphinx` or `Pandoc` is used.
+It uses `VimShowRst`, whose `outinfo` parameter specifies format and whether
+`Docutils`, `Sphinx` or `Pandoc` is used (see rstdoc).
+One can define one's own global `VimShowRst` python function and, e.g.,
+to provide an `outfile` parameter not in the generated temporary directory.
+One can also override `VimShowRstTempSrc`, to control the path below the
+generated temporary directory.
 
 `<leader>lh`, html, defaults to `Docutils`
 `<leader>lx`, sphinc_html, defaults to `Sphinx`
