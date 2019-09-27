@@ -179,7 +179,7 @@ def py3_expand_stpl():
 # from rstdoc
 try:
     from rstdoc.retable import reformat_table, reflow_table, re_title, get_bounds, title_some
-    from rstdoc.dcx import index_dir, convert_in_tempdir, startfile, yield_with_kw, rindices, stem, base
+    from rstdoc.dcx import index_dir, convert, convert_in_tempdir, startfile, yield_with_kw, rindices, stem, base
     from rstdoc.listtable import gridtable
     from rstdoc.reflow import reflow
     from rstdoc.untable import untable
@@ -297,17 +297,23 @@ def VimShowRst(
     ,outinfo='rst_html' #docx, ... , rst_html, ...  eps, svg, ...
     ):
     rngstr,_ = vim_current_range()
-    if '\n' not in rngstr:
-        lns = vim.current.buffer
-    else:
-        lns = rngstr.splitlines()
     d = os.path.dirname
     bb = os.path.basename
-    if outfile is None:
-        outinfo = VimShowRstTempSrc(vim.current.buffer.name)+'/'+outinfo
-    outfile = convert_in_tempdir(lns,outfile,outinfo=outinfo
-        ,lookup=['.','..',os.getcwd(),d(vim.current.buffer.name),d(d(vim.current.buffer.name))]
-        )
+    if '\n' not in rngstr:
+        sn = vim.current.buffer.name
+        outfile=stem(sn)+'.'
+        try:
+            outfile+=outinfo.split('_')[1]
+        except:
+            outfile+=outinfo
+        convert(sn,outfile,outinfo)
+    else:
+        lns = rngstr.splitlines()
+        if outfile is None:
+            outinfo = VimShowRstTempSrc(vim.current.buffer.name)+'/'+outinfo
+        outfile = convert_in_tempdir(lns,outfile,outinfo=outinfo
+            ,lookup=['.','..',os.getcwd(),d(vim.current.buffer.name),d(d(vim.current.buffer.name))]
+            )
     if outfile.endswith('.html') and browser:
         browser.open(outfile)
     else:
