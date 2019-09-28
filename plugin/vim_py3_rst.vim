@@ -39,7 +39,7 @@ from itertools import tee
 import re
 import stpl
 import webbrowser as wb
-import string
+from string import punctuation as punct
 import numpy as np
 from time import time, mktime
 __name__ = "__vim__"
@@ -179,7 +179,7 @@ def py3_expand_stpl():
 # from rstdoc
 try:
     from rstdoc.retable import reformat_table, reflow_table, re_title, get_bounds, title_some
-    from rstdoc.dcx import index_dir, convert, convert_in_tempdir, startfile, yield_with_kw, rindices, stem, base
+    from rstdoc.dcx import index_dir, convert, convert_in_tempdir, startfile, yield_with_kw, rindices, stem, base, pdtid
     from rstdoc.listtable import gridtable
     from rstdoc.reflow import reflow
     from rstdoc.untable import untable
@@ -230,17 +230,24 @@ def ReTable():
     c_r=vim.current.range
     lsttbl = list(retable(c_r[:]))
     vim.current.buffer[c_r.start:c_r.end+1] = lsttbl
-def Anchor():
+def Anchor(
+    Ider = lambda ln: ''.join([x for x in ln if x not in punct+' \t'])
+    ):
     c_l = vim.current.line
     c_l_strip = c_l.strip()
     if c_l_strip:
         nspace = c_l.find(c_l_strip)
-        Id = ''.join([
-            x for x in c_l_strip if x not in string.punctuation+' \t'])
+        Id = Ider(c_l_strip)
     else:
         nspace = 0
         mt = int(time()-mktime((2017,12,31,24,0,0,0,0,0)))
-        Id = ''.join(list(np.base_repr(mt,36))).lower()
+        Id = ''.join(reversed(np.base_repr(mt,36))).lower()
+    try:
+        fid = pdtid(vim.current.buffer.name)
+        Id = base(vim.current.buffer.name)[0]+fid+Id
+    except:
+        pass
+    Id = Id.lower()
     vim.eval("setreg('i','%s')"%Id)
     pos=vim.current.window.cursor[0]-1
     while pos>0 and vim.current.buffer[pos]:
@@ -481,6 +488,7 @@ nnoremap <silent> <leader>etr :py3 ReflowTable()<CR>
 " `<leader>etu` transform to next header up
 " `<leader>etd` transform to next header down
 " `<leader>eta`: anchor for item or header line, random if on empty line
+" `<leader>etg`: shorter anchor
 "
 ""
 command! -narg=1 U py3 UnderLine(<f-args>)
@@ -489,7 +497,7 @@ nnoremap <silent> <leader>ett :py3 ReTitle()<CR>
 nnoremap <silent> <leader>etu :py3 ReTitle(-1)<CR>
 nnoremap <silent> <leader>etd :py3 ReTitle(1)<CR>
 nnoremap <silent> <leader>eta :py3 Anchor()<CR>
-
+nnoremap <silent> <leader>etg :py3 Anchor(Ider=lambda cl: ''.join(s[0] for s in filter(lambda x:x, re.split('[^0-9A-Za-z_]',cl))).lower())<CR>
 
 ""
 " Keyword Lines
