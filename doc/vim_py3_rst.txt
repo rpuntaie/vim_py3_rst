@@ -104,6 +104,7 @@ Header underlines within one `.rest` must be consistent.
 `<leader>etu` transform to next header up
 `<leader>etd` transform to next header down
 `<leader>eta`: anchor for item or header line, random if on empty line
+`<leader>etg`: shorter anchor
 
 
 Keyword Lines

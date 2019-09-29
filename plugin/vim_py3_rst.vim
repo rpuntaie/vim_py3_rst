@@ -179,7 +179,7 @@ def py3_expand_stpl():
 # from rstdoc
 try:
     from rstdoc.retable import reformat_table, reflow_table, re_title, get_bounds, title_some
-    from rstdoc.dcx import index_dir, convert, convert_in_tempdir, startfile, yield_with_kw, rindices, stem, base, pdtid
+    import rstdoc.dcx as dcx
     from rstdoc.listtable import gridtable
     from rstdoc.reflow import reflow
     from rstdoc.untable import untable
@@ -211,7 +211,7 @@ def TitleLine(chr):
     pos,rcline,tline = _header(chr)
     vim.current.buffer[pos:pos+1] = [tline,rcline,tline]
 def RstIndex():
-    index_dir()
+    dcx.index_dir()
     tags=','.join([str(atagf.absolute()) for atagf in Path('.').glob("**/.tags")])
     vim.eval('''execute("set tags=./.tags,.tags,'''+tags.replace('\\','/')+'")')
 def ListTable(join):
@@ -243,8 +243,8 @@ def Anchor(
         mt = int(time()-mktime((2017,12,31,24,0,0,0,0,0)))
         Id = ''.join(reversed(np.base_repr(mt,36))).lower()
     try:
-        fid = pdtid(vim.current.buffer.name)
-        Id = base(vim.current.buffer.name)[0]+fid+Id
+        fid = dcx.pdtid(vim.current.buffer.name)
+        Id = dcx.base(vim.current.buffer.name)[0]+fid+Id
     except:
         pass
     Id = Id.lower()
@@ -257,7 +257,7 @@ def Anchor(
 def vim_query_kws (query,fn_ln_kw=None,ask=True):
     #query = 'a'
     #fn_ln_kw = [('a/b',1,'a b'),('c/d',1,'c d')]
-    i_kws = list(yield_with_kw(query,fn_ln_kw))
+    i_kws = list(dcx.yield_with_kw(query,fn_ln_kw))
     qf = [{'filename':e[0].replace('\\\\','\\'),'lnum':e[1]} for i,e in i_kws]
     vim.eval('setqflist({0})'.format(str(qf)))
     if ask:
@@ -279,7 +279,7 @@ def vim_local_arg_ask_kws(*args):
     fn = vim.eval('expand("%:p")')
     vim_query_kws(
         query=args and ','.join(args) or vim.current.line,
-        fn_ln_kw=[(fn,l+1,vim.current.buffer[l]) for l in rindices(
+        fn_ln_kw=[(fn,l+1,vim.current.buffer[l]) for l in dcx.rindices(
             rstdoc.dcx.rexkw,vim.current.buffer)]
         )
 def vim_rst_arg_ask_kws(*args):
@@ -298,7 +298,7 @@ for brwsrname in browsers:
         break
 __confdir = os.path.expanduser('~')
 __tmpdir = os.path.join(__confdir,'tmp')
-VimShowRstTempSrc = lambda fn: stem(stem(base(fn)))
+VimShowRstTempSrc = lambda fn: dcx.stem(dcx.stem(dcx.base(fn)))
 def VimShowRst(
     outfile=None
     ,outinfo='rst_html' #docx, ... , rst_html, ...  eps, svg, ...
@@ -308,23 +308,23 @@ def VimShowRst(
     bb = os.path.basename
     if '\n' not in rngstr:
         sn = vim.current.buffer.name
-        outfile=stem(sn)+'.'
+        outfile=dcx.stem(sn)+'.'
         try:
             outfile+=outinfo.split('_')[1]
         except:
             outfile+=outinfo
-        convert(sn,outfile,outinfo)
+        dcx.convert(sn,outfile,outinfo)
     else:
         lns = rngstr.splitlines()
         if outfile is None:
             outinfo = VimShowRstTempSrc(vim.current.buffer.name)+'/'+outinfo
-        outfile = convert_in_tempdir(lns,outfile,outinfo=outinfo
+        outfile = dcx.convert_in_tempdir(lns,outfile,outinfo=outinfo
             ,lookup=['.','..',os.getcwd(),d(vim.current.buffer.name),d(d(vim.current.buffer.name))]
             )
     if outfile.endswith('.html') and browser:
         browser.open(outfile)
     else:
-        startfile(outfile)
+        dcx.startfile(outfile)
 # titles
 vim.command("nnoremap <silent> <leader>h1 :T#<CR>")
 vim.command("noremap <silent> <leader>h2 :T*<CR>")
