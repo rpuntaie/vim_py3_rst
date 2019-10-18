@@ -230,9 +230,13 @@ def ReTable():
     c_r=vim.current.range
     lsttbl = list(retable(c_r[:]))
     vim.current.buffer[c_r.start:c_r.end+1] = lsttbl
-def Anchor(
-    Ider = lambda ln: ''.join([x for x in ln if x not in punct+' \t'])
-    ):
+def Anchor(short=True):
+    if short: # initials of words
+        Ider = lambda cl: ''.join(s[0] for s in filter(
+                    lambda x:x, re.split('[^0-9A-Za-z_]',cl))
+                    ).lower()
+    else: # concatenation of words
+        Ider = lambda ln: ''.join([x for x in ln if x not in punct+' \t'])
     c_l = vim.current.line
     c_l_strip = c_l.strip()
     if c_l_strip:
@@ -240,13 +244,26 @@ def Anchor(
         Id = Ider(c_l_strip)
     else:
         nspace = 0
-        mt = int(time()-mktime((2017,12,31,24,0,0,0,0,0)))
-        Id = ''.join(reversed(np.base_repr(mt,36))).lower()
+        if short:
+            ishort = int(short)
+            Idint=random.randint(0,36**ishort-1)
+            Id=np.base_repr(Idint,36).lower()
+            lenId = len(Id)
+            if lenId < ishort:
+                Id='0'*(ishort-lenId)+Id
+        else:
+            mt = int(time()-mktime((2017,12,31,24,0,0,0,0,0)))
+            Id = ''.join(reversed(np.base_repr(mt,36))).lower()
     try:
         fid = dcx.pdtid(vim.current.buffer.name)
-        Id = dcx.base(vim.current.buffer.name)[0]+fid+Id
     except:
-        pass
+        fid = ''
+    nm = dcx.base(vim.current.buffer.name)
+    for x in nm:
+        if x!='_':
+            nm = x.lower()
+            break
+    Id = nm+fid+Id
     Id = Id.lower()
     vim.eval("setreg('i','%s')"%Id)
     pos=vim.current.window.cursor[0]-1
@@ -496,8 +513,8 @@ command! -narg=1 T py3 TitleLine(<f-args>)
 nnoremap <silent> <leader>ett :py3 ReTitle()<CR>
 nnoremap <silent> <leader>etu :py3 ReTitle(-1)<CR>
 nnoremap <silent> <leader>etd :py3 ReTitle(1)<CR>
-nnoremap <silent> <leader>eta :py3 Anchor()<CR>
-nnoremap <silent> <leader>etg :py3 Anchor(Ider=lambda cl: ''.join(s[0] for s in filter(lambda x:x, re.split('[^0-9A-Za-z_]',cl))).lower())<CR>
+nnoremap <silent> <leader>eta :py3 Anchor(short=False)<CR>
+nnoremap <silent> <leader>etg :py3 Anchor(short=True)<CR>
 
 ""
 " Keyword Lines
