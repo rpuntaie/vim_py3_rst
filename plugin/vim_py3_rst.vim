@@ -42,6 +42,7 @@ import webbrowser as wb
 from string import punctuation as punct
 import numpy as np
 from time import time, mktime
+import random
 __name__ = "__vim__"
 conditional=re.compile(
         r'(\s*def\s+|\s*if\s+|\s*elif\s+|\s*while\s+|\s*for\s+[\w,\s]+in\s+)(.*)(:.*)')
