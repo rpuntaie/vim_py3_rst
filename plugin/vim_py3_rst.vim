@@ -525,7 +525,7 @@ nnoremap <silent> <leader>etg :py3 Anchor(short=True)<CR>
 "   .. {kw1,kw2,...}
 "
 " is seen as keyword line according ``rstdoc.dcx.rexkw``, which can be changed.
-" See `yield_with_kw()` in
+" This has been generalized to other comments. See `yield_with_kw()` in
 " https://github.com/rpuntaie/rstdoc/blob/master/rstdoc/dcx.py.
 "
 " Such lines can be searched with
