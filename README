@@ -24,6 +24,8 @@ or the current line.
 
 `<leader>jk`: only evaluate
 
+`<leader>jl`: evaluate and capture print in * register
+
 `<leader>je`: expand bottle `SimpleTemplate`
 
 `<leader>jd`: evaluate the python `doctest` in the visual range
@@ -111,10 +113,10 @@ Keyword Lines
 
 A RST comment of shape::
 
-  .. {kw1,kw2,...}
+  .. {{{kw1,kw2,...
 
 is seen as keyword line according ``rstdoc.dcx.rexkw``, which can be changed.
-See `yield_with_kw()` in
+This has been generalized to other comments. See `yield_with_kw()` in
 https://github.com/rpuntaie/rstdoc/blob/master/rstdoc/dcx.py.
 
 Such lines can be searched with

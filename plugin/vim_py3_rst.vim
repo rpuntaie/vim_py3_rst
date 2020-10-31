@@ -121,13 +121,14 @@ def py3_eval_current_range():
 def py3_ready_for_eval(line):
     cm = conditional.match(line)
     if cm:
-        toeval =  cm.group(2)
+        toeval = cm.group(2)
     else:
-        toeval =  line.replace('return ','').replace('yield ',''
-          ).replace('continue','pass').replace('break','pass')
+        toeval =  line
     return 'py_res ='+toeval
+_rycb = lambda x: x.replace('return ','').replace('yield ',''
+  ).replace('continue','pass').replace('break','pass').replace(':=','=')
 def make_py_res(rngstr):
-    rl = rngstr.splitlines()
+    rl = [_rycb(x) for x in rngstr.splitlines()]
     if rl[-1][0] != ' ':
         rl[-1] = py3_ready_for_eval(rl[-1])
     else:
@@ -137,10 +138,11 @@ def py3_print_current_range():
     rngstr,_ = vim_current_range()
     try:
         py3_eval(make_py_res(rngstr))
-        result = eval("py_res",globals())
     except:
         py3_eval(rngstr)
         result = None
+    else:
+        result = eval("py_res",globals())
     py3_print_result_in_vim(rngstr,result)
 def py3_doctest_current_range():
     rngstr,_ = vim_current_range()
@@ -350,14 +352,12 @@ for i,x in enumerate(title_some):
     vim.command("nnoremap <silent> <leader>h{} :U{}<CR>".format(3+i,x))
 EOF
 
-
 if has("autocmd")
     autocmd BufEnter *.py :py3 __file__ = vim.current.buffer.name
     autocmd BufEnter *.py :py3 __name__ = file_to_name(vim.current.buffer.name)
 endif
 
-
-function! PyOut()
+function! s:PyOut()
     let cwn = winnr()
     let id = '__pyout__'
     if bufwinnr(id) != -1
@@ -388,6 +388,13 @@ function! PyOut()
     endif
     exec cwn.'wincmd w'
 endf
+function! s:PyCapture() range
+  redir => output
+  py3 py3_eval_current_range()
+  redir End
+  call setreg("*",output)
+endfunction
+
 
 ""
 " ==============================================================================
@@ -404,6 +411,8 @@ endf
 "
 " `<leader>jk`: only evaluate
 "
+" `<leader>jl`: evaluate and capture print in * register
+"
 " `<leader>je`: expand bottle `SimpleTemplate`
 "
 " `<leader>jd`: evaluate the python `doctest` in the visual range
@@ -419,10 +428,12 @@ endf
 " beginning of each line. If needed, start visual with an empty line.
 "
 ""
-command! -narg=0 PyOut call PyOut()
+command! -narg=0 PyOut call <SID>PyOut()
+command! -narg=0 -range=% PyCapture call <SID>PyCapture()
 map <silent> <leader>jw :PyOut<CR>
 map <silent> <leader>jj :py3 py3_print_current_range()<CR>
 map <silent> <leader>jk :py3 py3_eval_current_range()<CR>
+map <silent> <leader>jl :PyCapture<CR>
 map <silent> <leader>je :py3 py3_expand_stpl()<CR>
 map <silent> <leader>jd :py3 py3_doctest_current_range()<CR>
 map <silent> <leader>jt :py3 py3_timeit()<CR>
@@ -522,7 +533,7 @@ nnoremap <silent> <leader>etg :py3 Anchor(short=True)<CR>
 "
 " A RST comment of shape::
 "
-"   .. {kw1,kw2,...}
+"   .. {{{kw1,kw2,...
 "
 " is seen as keyword line according ``rstdoc.dcx.rexkw``, which can be changed.
 " This has been generalized to other comments. See `yield_with_kw()` in
