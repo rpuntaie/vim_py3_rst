@@ -510,8 +510,8 @@ nnoremap <silent> <leader>etr :py3 ReflowTable()<CR>
 "
 " Header underlines within one `.rest` must be consistent.
 "
-" `<leader>ehx`: with `x∈{1,..,f}`, to make header of depth `x`.
-"                See `title_some` in `rstdoc.retable`.
+" `<leader>hx`: with `x∈{1,..,f}`, to make header of depth `x`.
+"               See `title_some` in `rstdoc.retable`.
 "
 " `<leader>ett` reformats the header underlining
 " `<leader>etu` transform to next header up
