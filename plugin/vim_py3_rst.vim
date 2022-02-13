@@ -233,7 +233,7 @@ def ReTable():
     c_r=vim.current.range
     lsttbl = list(retable(c_r[:]))
     vim.current.buffer[c_r.start:c_r.end+1] = lsttbl
-def Anchor(short=True):
+def Anchor(short=True, nm_fid_id=lambda a,b,c: a+b+c):
     if short: # initials of words
         Ider = lambda cl: ''.join(s[0] for s in filter(
                     lambda x:x, re.split('[^0-9A-Za-z_]',cl))
@@ -266,7 +266,7 @@ def Anchor(short=True):
         if x!='_':
             nm = x.lower()
             break
-    Id = nm+fid+Id
+    Id = nm_fid_id(nm,fid,Id)
     Id = Id.lower()
     vim.eval("setreg('i','%s')"%Id)
     pos=vim.current.window.cursor[0]-1
@@ -527,6 +527,7 @@ nnoremap <silent> <leader>etu :py3 ReTitle(-1)<CR>
 nnoremap <silent> <leader>etd :py3 ReTitle(1)<CR>
 nnoremap <silent> <leader>eta :py3 Anchor(short=0)<CR>
 nnoremap <silent> <leader>etg :py3 Anchor(short=2)<CR>
+nnoremap <silent> <leader>ete :py3 Anchor(0,lambda x,y,z:z)<CR>
 
 ""
 " Keyword Lines
