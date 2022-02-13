@@ -525,8 +525,8 @@ command! -narg=1 T py3 TitleLine(<f-args>)
 nnoremap <silent> <leader>ett :py3 ReTitle()<CR>
 nnoremap <silent> <leader>etu :py3 ReTitle(-1)<CR>
 nnoremap <silent> <leader>etd :py3 ReTitle(1)<CR>
-nnoremap <silent> <leader>eta :py3 Anchor(short=False)<CR>
-nnoremap <silent> <leader>etg :py3 Anchor(short=True)<CR>
+nnoremap <silent> <leader>eta :py3 Anchor(short=0)<CR>
+nnoremap <silent> <leader>etg :py3 Anchor(short=2)<CR>
 
 ""
 " Keyword Lines
