@@ -278,7 +278,7 @@ def vim_query_kws (query,fn_ln_kw=None,ask=True):
     #query = 'a'
     #fn_ln_kw = [('a/b',1,'a b'),('c/d',1,'c d')]
     i_kws = list(dcx.yield_with_kw(query,fn_ln_kw))
-    qf = [{'filename':e[0].replace('\\\\','\\'),'lnum':e[1]} for i,e in i_kws]
+    qf = [{'filename':e[0].replace('\\\\','\\'),'lnum':e[1],'text':e[2]} for i,e in i_kws]
     vim.eval('setqflist({0})'.format(str(qf)))
     if ask:
         qflen=len(qf)
