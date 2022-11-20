@@ -91,7 +91,9 @@ The following functions use the cursor position, not the visual.
 
 The implementation is in `rstdoc.retable`.
 
-`<leader>etf`: format into table columns, where there are at least 2 spaces
+`<leader>etf`: format into table columns,
+if cursor on first line of block with at least 2 spaces as delimiters
+
 `<leader>etr`: reformat based on the length of the first border line
 
 
