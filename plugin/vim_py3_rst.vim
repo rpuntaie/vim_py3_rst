@@ -277,7 +277,7 @@ def Anchor(short=True, nm_fid_id=lambda a,b,c: a+b+c):
 def vim_query_kws (tags,fn_ln_kw=None,ask=True):
     #query = 'a'
     #fn_ln_kw = [('a/b',1,'a b'),('c/d',1,'c d')]
-    query = tags and ','.join(tags) or vim.current.line,
+    query = tags and ','.join(tags) or vim.current.line
     query = query.strip()
     # query = '~/mine/voltaik photovoltaik technology'
     if query.startswith('~') or query.startswith('/'):
