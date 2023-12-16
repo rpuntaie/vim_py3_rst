@@ -274,10 +274,17 @@ def Anchor(short=True, nm_fid_id=lambda a,b,c: a+b+c):
         pos = pos - 1
     vim.current.buffer[pos:pos+1] = ['',' '*nspace+'.. _`{}`:'.format(Id), '' ]
 # find in tag lines of format .. {tag1, tag2,...}
-def vim_query_kws (query,fn_ln_kw=None,ask=True):
+def vim_query_kws (tags,fn_ln_kw=None,ask=True):
     #query = 'a'
     #fn_ln_kw = [('a/b',1,'a b'),('c/d',1,'c d')]
-    i_kws = list(dcx.yield_with_kw(query,fn_ln_kw,dir=vim.eval('expand("%:p:h")')))
+    query = tags and ','.join(tags) or vim.current.line,
+    query = query.strip()
+    # query = '~/mine/voltaik photovoltaik technology'
+    if query.startswith('~') or query.startswith('/'):
+        directory, query = query.split(' ',1)
+    else:
+        directory = vim.eval('expand("%:p:h")')
+    i_kws = list(dcx.yield_with_kw(query,fn_ln_kw,dir=directory))
     qf = [{'filename':e[0].replace('\\\\','\\'),'lnum':e[1],'text':e[2]} for i,e in i_kws]
     vim.eval('setqflist({0})'.format(str(qf)))
     if ask:
@@ -297,14 +304,13 @@ def vim_query_kws (query,fn_ln_kw=None,ask=True):
 def vim_local_arg_ask_kws(*args):
     import rstdoc.dcx
     fn = vim.eval('expand("%:p")')
-    vim_query_kws(
-        query=args and ','.join(args) or vim.current.line,
+    vim_query_kws(args,
         fn_ln_kw=[(fn,l+1,vim.current.buffer[l]) for l in dcx.rindices(
             rstdoc.dcx.rexkw,vim.current.buffer)]
         )
 def vim_rst_arg_ask_kws(*args):
     import rstdoc.dcx
-    vim_query_kws(args and ','.join(args) or vim.current.line,
+    vim_query_kws(args,
             fn_ln_kw=rstdoc.dcx.rexkw)
 browsers=[None,'firefox','chrome','chromium','safari']
 if sys.platform=='linux':
