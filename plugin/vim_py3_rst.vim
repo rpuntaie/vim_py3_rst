@@ -282,6 +282,7 @@ def vim_query_kws (tags,fn_ln_kw=None,ask=True):
     # query = '~/mine/voltaik photovoltaik technology'
     if query.startswith('~') or query.startswith('/'):
         directory, query = query.split(' ',1)
+        directory = os.path.expanduser(directory)
     else:
         directory = vim.eval('expand("%:p:h")')
     i_kws = list(dcx.yield_with_kw(query,fn_ln_kw,dir=directory))
