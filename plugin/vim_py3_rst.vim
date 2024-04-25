@@ -144,6 +144,26 @@ def py3_print_current_range():
     else:
         result = eval("py_res",globals())
     py3_print_result_in_vim(rngstr,result)
+def py3_print_lines():
+    rngstr,_ = vim_current_range()
+    #rngstr='i=3\nj=4'
+    reses = []
+    for ln in rngstr.splitlines():
+        py3_eval(make_py_res(ln))
+        reses += [eval("py_res",globals())]
+    res = [r.split('#')[0] + '#' + str(reses[i]) for i,r in enumerate(vim.current.range)]
+    vim.current.range[:] = res
+def py3_print_columns():
+    rngstr,from_to = vim_current_range()
+    if from_to:
+        colcode = eval(''.join(rngstr.splitlines()))
+    else:
+        result = ""
+        cols = [l.split('  ') for l in rngstr.splitlines()]
+        for c in np.transpose(cols):
+            cc = eval(''.join(c))
+            result += '  ' + str(cc)
+    py3_print_result_in_vim(rngstr,result)
 def py3_doctest_current_range():
     rngstr,_ = vim_current_range()
     test = doctest.DocTestParser().get_doctest(rngstr,globals(), 'vimv', None, 0)
@@ -440,6 +460,8 @@ command! -narg=0 -range=% PyCapture call <SID>PyCapture()
 map <silent> <leader>jw :PyOut<CR>
 map <silent> <leader>jj :py3 py3_print_current_range()<CR>
 map <silent> <leader>jk :py3 py3_eval_current_range()<CR>
+map <silent> <leader>jc :py3 py3_print_columns()<CR>
+map <silent> <leader>jr :py3 py3_print_lines()<CR>
 map <silent> <leader>jl :PyCapture<CR>
 map <silent> <leader>je :py3 py3_expand_stpl()<CR>
 map <silent> <leader>jd :py3 py3_doctest_current_range()<CR>
