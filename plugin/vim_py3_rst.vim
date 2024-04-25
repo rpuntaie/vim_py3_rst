@@ -92,19 +92,19 @@ def vim_current_range():
         c_r=[vim.current.line]
     b = (0,0)
     e = (0,-1)
-    if len(c_r)==1:
-        b = vim.current.buffer.mark('<')
-        e = vim.current.buffer.mark('>')
-    if b and e and getattr(
-          c_r,'start',-2)+1 == b[0] and b[1] <= e[1] and e[1] < len(c_r[0]):
+    b = vim.current.buffer.mark('<')
+    e = vim.current.buffer.mark('>')
+    if vim.eval(f"line2byte({b[0]})+{b[1]}") > vim.eval(f"line2byte({e[0]})+{e[1]}"):
+        b,e = e,b
+    vmod = e[1] < 2**31
+    from_to = None
+    if vmod and b and e and getattr(c_r,'start',-2)+1 == b[0] and b[1] <= e[1]:
         if vim.eval('&selection')=='exclusive':
             from_to = b[1],e[1]
         else:
             from_to = b[1],e[1]+1
-        rngstr = c_r[0][from_to[0]:from_to[1]]
-        rngstr = rngstr
+        rngstr = '\n'.join([r[from_to[0]:from_to[1]] for r in c_r])
     else:
-        from_to = None
         t = c_r[0]
         i = t.find(t.strip(' >#.%,\t'))
         rngstr = '\n'.join([ln[i:] for ln in c_r])
@@ -175,8 +175,9 @@ def py3_expand_stpl():
         globals()['__file__'] = fl
     t = ''.join(template_stdout)
     if from_to:
-        res = vim.current.range[0][:from_to[0]]+t+vim.current.range[0][from_to[1]:]
-        vim.current.range[:] = res.splitlines()
+        tt = t.splitlines()
+        res = [r[:from_to[0]]+tt[i]+r[from_to[1]:] for i,r in enumerate(vim.current.range)]
+        vim.current.range[:] = res
     else:
         vim.current.range[:] = t.splitlines()
 # from rstdoc
@@ -279,7 +280,6 @@ def vim_query_kws (tags,fn_ln_kw=None,ask=True):
     #fn_ln_kw = [('a/b',1,'a b'),('c/d',1,'c d')]
     query = tags and ','.join(tags) or vim.current.line
     query = query.strip()
-    # query = '~/mine/voltaik photovoltaik technology'
     if query.startswith('~') or query.startswith('/'):
         directory, query = query.split(' ',1)
         directory = os.path.expanduser(directory)
