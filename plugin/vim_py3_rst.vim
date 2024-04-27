@@ -86,6 +86,11 @@ def py3_print_result_in_vim(expr, result):
         vim.command("wincmd p")
     else:
         print(res_str)
+def skipinitial(txt):
+    lns = txt.splitlines()
+    t = lns[0]
+    i = t.find(t.strip(' >#.%,\t'))
+    return '\n'.join([ln[i:] for ln in lns])
 def vim_current_range():
     c_r=vim.current.range
     if not c_r:
@@ -105,16 +110,14 @@ def vim_current_range():
             from_to = b[1],e[1]+1
         rngstr = '\n'.join([r[from_to[0]:from_to[1]] for r in c_r])
     else:
-        t = c_r[0]
-        i = t.find(t.strip(' >#.%,\t'))
-        rngstr = '\n'.join([ln[i:] for ln in c_r])
+        rngstr = skipinitial('\n'.join(c_r))
     return rngstr, from_to
 def py3_eval(code):
     eval(compile(
         '__file__ = r"%s"'%vim.current.buffer.name.replace('\\','/')
         ,'<vim_py3_rst>','exec'),globals()
         )
-    eval(compile(code,'<vim_py3_rst>','exec'),globals())
+    eval(compile(skipinitial(code),'<vim_py3_rst>','exec'),globals())
 def py3_eval_current_range():
     rngstr,_ = vim_current_range()
     py3_eval(rngstr)
@@ -146,7 +149,6 @@ def py3_print_current_range():
     py3_print_result_in_vim(rngstr,result)
 def py3_print_lines():
     rngstr,_ = vim_current_range()
-    #rngstr='i=3\nj=4'
     reses = []
     for ln in rngstr.splitlines():
         py3_eval(make_py_res(ln))
