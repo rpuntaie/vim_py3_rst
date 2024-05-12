@@ -100,9 +100,9 @@ def vim_current_range():
     e = (0,-1)
     b = vim.current.buffer.mark('<')
     e = vim.current.buffer.mark('>')
-    if vim.eval(f"line2byte({b[0]})+{b[1]}") > vim.eval(f"line2byte({e[0]})+{e[1]}"):
+    if int(vim.eval(f"line2byte({b[0]})+{b[1]}")) > int(vim.eval(f"line2byte({e[0]})+{e[1]}")):
         b,e = e,b
-    vmod = e[1] < 2**31
+    vmod = e[1] < 2**31-1
     from_to = None
     if vmod and b and e and getattr(c_r,'start',-2)+1 == b[0] and b[1] <= e[1]:
         if vim.eval('&selection')=='exclusive':
@@ -116,18 +116,14 @@ def vim_current_range():
 def py3_eval(code):
     d = os.path.dirname
     bfile = vim.current.buffer.name.replace('\\','/')
-    appends = 0
     for ad in [d(d(bfile)), d(bfile), os.getcwd()]:
         if ad not in sys.path:
             sys.path.append(ad)
-            appends += 1
     eval(compile(
         '__file__ = r"%s"'%bfile
         ,'<vim_py3_rst>','exec'),globals()
         )
     eval(compile(skipinitial(code),'<vim_py3_rst>','exec'),globals())
-    for _ in range(appends):
-        del sys.path[-1]
 def py3_eval_current_range():
     rngstr,_ = vim_current_range()
     py3_eval(rngstr)
@@ -168,13 +164,15 @@ def py3_print_lines():
 def py3_print_columns():
     rngstr,from_to = vim_current_range()
     if from_to:
-        colcode = eval(''.join(rngstr.splitlines()))
+        py3_eval(make_py_res(''.join(rngstr.splitlines())))
+        result = eval("py_res",globals())
     else:
-        result = ""
-        cols = [l.split('  ') for l in rngstr.splitlines()]
+        cols = [l.split() for l in rngstr.splitlines()]
+        reses = []
         for c in np.transpose(cols):
-            cc = eval(''.join(c))
-            result += '  ' + str(cc)
+            py3_eval(make_py_res(''.join(c)))
+            reses += [eval("py_res",globals())]
+        result = '  '.join(str(r) for r in reses)
     py3_print_result_in_vim(rngstr,result)
 def py3_doctest_current_range():
     rngstr,_ = vim_current_range()
@@ -451,7 +449,7 @@ endfunction
 "
 " `<leader>jl`: evaluate and capture print in * register
 "
-" `<leader>je`: expand bottle `SimpleTemplate`
+" `<leader>je`: expand bottle `SimpleTemplate`/`stpl`
 "
 " `<leader>jd`: evaluate the python `doctest` in the visual range
 "
@@ -459,6 +457,10 @@ endfunction
 "               (within a `.py` file)
 "
 " `<leader>jh`: print python help of word under cursor
+"
+" `<leader>jc`: convert columns to lines and evaluate
+"
+" `<leader>jr`: print result of each line after a comment char #
 "
 " `return`, `yield`, ... are skipped, if evaluating only one line.
 "

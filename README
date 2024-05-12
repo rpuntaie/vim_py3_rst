@@ -26,7 +26,7 @@ or the current line.
 
 `<leader>jl`: evaluate and capture print in * register
 
-`<leader>je`: expand bottle `SimpleTemplate`
+`<leader>je`: expand bottle `SimpleTemplate`/`stpl`
 
 `<leader>jd`: evaluate the python `doctest` in the visual range
 
@@ -34,6 +34,10 @@ or the current line.
               (within a `.py` file)
 
 `<leader>jh`: print python help of word under cursor
+
+`<leader>jc`: convert columns to lines and evaluate
+
+`<leader>jr`: print result of each line after a comment char #
 
 `return`, `yield`, ... are skipped, if evaluating only one line.
 
@@ -99,8 +103,8 @@ Headers
 
 Header underlines within one `.rest` must be consistent.
 
-`<leader>ehx`: with `x∈{1,..,f}`, to make header of depth `x`.
-               See `title_some` in `rstdoc.retable`.
+`<leader>hx`: with `x∈{1,..,f}`, to make header of depth `x`.
+              See `title_some` in `rstdoc.retable`.
 
 `<leader>ett` reformats the header underlining
 `<leader>etu` transform to next header up
