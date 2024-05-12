@@ -30,6 +30,7 @@ py3 << EOF
 # with open(readme,'w') as f:
 #   f.writelines(open(vimhelp).readlines())
 import vim
+import sys
 import types
 import os
 import doctest
@@ -113,11 +114,20 @@ def vim_current_range():
         rngstr = skipinitial('\n'.join(c_r))
     return rngstr, from_to
 def py3_eval(code):
+    d = os.path.dirname
+    bfile = vim.current.buffer.name.replace('\\','/')
+    appends = 0
+    for ad in [d(d(bfile)), d(bfile), os.getcwd()]:
+        if ad not in sys.path:
+            sys.path.append(ad)
+            appends += 1
     eval(compile(
-        '__file__ = r"%s"'%vim.current.buffer.name.replace('\\','/')
+        '__file__ = r"%s"'%bfile
         ,'<vim_py3_rst>','exec'),globals()
         )
     eval(compile(skipinitial(code),'<vim_py3_rst>','exec'),globals())
+    for _ in range(appends):
+        del sys.path[-1]
 def py3_eval_current_range():
     rngstr,_ = vim_current_range()
     py3_eval(rngstr)
@@ -354,7 +364,6 @@ def VimShowRst(
     ):
     rngstr,_ = vim_current_range()
     d = os.path.dirname
-    bb = os.path.basename
     if '\n' not in rngstr:
         sn = vim.current.buffer.name
         outfile=dcx.stem(sn)+'.'
