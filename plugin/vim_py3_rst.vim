@@ -315,7 +315,12 @@ def vim_query_kws (tags,fn_ln_kw=None,ask=True):
         directory = os.path.expanduser(directory)
     else:
         directory = vim.eval('expand("%:p:h")')
-    i_kws = list(dcx.yield_with_kw(query,fn_ln_kw,dir=directory))
+    i_kws = list(dcx.yield_with_kw(query,fn_ln_kw,dir=directory,
+      exts=set(['.rst','.rest','.stpl','.tpl','.adoc','.md','.wiki','.py','.jl','.lua','.tex',
+                '.js', '.h','.c','.hpp','.cpp','.java','.cs','.vb','.r','.sh','.vim','.el',
+                '.php','.sql','.swift','.go','.rb','.m','.pl','.rs','.f90','.dart','.bib',
+                '.yml','.mm','.d','.lsp','.kt','.hs','.lhs','.ex','.scala','.clj','.typ'])
+    ))
     qf = [{'filename':e[0].replace('\\\\','\\'),'lnum':e[1],'text':e[2]} for i,e in i_kws]
     vim.eval('setqflist({0})'.format(str(qf)))
     if ask:
